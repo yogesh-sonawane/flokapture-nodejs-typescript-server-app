@@ -1,0 +1,79 @@
+{
+  "name": "flokapture-nodejs-typescript-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "flokapture-server-host-app.ts",
+  "scripts": {
+    "build-ts": "tsc",
+    "lint": "tslint -c tslint.json 'src/**/*.ts'",
+    "postinstall": "npm run build-ts",
+    "start": "npm run serve",
+    "serve": "nodemon --inspect-brk --inspect dist/flokapture-server-host-app.js",
+    "test": "jest src",
+    "watch-node": "nodemon --inspect-brk --inspect=127.0.0.1:9230 dist/flokapture-server-host-app.js",
+    "watch-ts": "tsc -w"
+  },
+  "keywords": [
+    "floKapture",
+    "UniVerse",
+    "File Parsing"
+  ],
+  "author": "Yogesh Sonawane",
+  "license": "ISC",
+  "engines": {
+    "node": "12.13.0"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ]
+  },
+  "dependencies": {
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.6",
+    "@types/express": "^4.17.2",
+    "@types/jsonwebtoken": "^8.3.5",
+    "@types/mongodb": "^3.3.14",
+    "@types/mongoose": "^5.5.37",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-path": "^0.3.8",
+    "jsonwebtoken": "^8.5.1",
+    "moment": "^2.24.0",
+    "mongodb": "^3.5.2",
+    "mongoose": "^5.8.3",
+    "mongoose-autopopulate": "^0.9.1",
+    "multer": "^1.4.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.25",
+    "@types/lodash": "^4.14.149",
+    "@types/validator": "^12.0.1",
+    "csv-parser": "^2.3.2",
+    "fast-csv": "^3.7.0",
+    "jest": "^24.9.0",
+    "lodash": "^4.17.15",
+    "mongoose-lean-defaults": "^0.3.1",
+    "mongoose-lean-getters": "^0.1.2",
+    "mongoose-lean-virtuals": "^0.5.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.2.0",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-plugin-prettier": "^2.1.0",
+    "typescript": "^3.7.4",
+    "unzipper": "^0.10.5",
+    "validator": "^12.1.0"
+  }
+}
