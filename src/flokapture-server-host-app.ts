@@ -42,9 +42,9 @@ Promise.resolve(mongoConnection()).then(() => {
         key: readFileSync(join(crtPath, "device.key"))
     };
     App.use(Express.static(uploadPath));
-    var exressHttpsServer = https.createServer(httpsOptions, App);
+    var expressHttpsServer = https.createServer(httpsOptions, App);
     var portNumber = process.env.PORT || 4000;
-    exressHttpsServer.listen(portNumber, function () {
+    expressHttpsServer.listen(portNumber, function () {
         var address: any = this.address();
         if (!globalAny.dbConnection) {
             console.log("==========================================================================");

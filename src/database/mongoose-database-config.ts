@@ -29,7 +29,7 @@ const mongoDbOpt: Mongoose.ConnectionOptions = {
         user: userName,
         password: password
     },
-    useUnifiedTopology: true, // Use this paramenter option later... DeprecationWarning ignored
+    useUnifiedTopology: true, // Use this parameter option later... DeprecationWarning ignored
     useFindAndModify: false
 };
 
@@ -37,7 +37,7 @@ const dbServer = function () {
     Mongoose.Promise = global.Promise;
     return Mongoose.createConnection(mongoDbUrl, mongoDbOpt)
         .on("connected", function () {
-            console.log("Database connection succeded!!");
+            console.log("Database connection succeeded!!");
             console.log('=======================================================================');
         }).on("disconnected", function () {
             console.log("Database connection has been disconnected!!");

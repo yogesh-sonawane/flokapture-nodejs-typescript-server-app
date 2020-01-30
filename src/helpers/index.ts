@@ -5,7 +5,7 @@ import { universeArrayExtensions, UniverseArrayExtensions } from "./universe-bas
 import { universeStringExtensions, UniverseStringExtensions } from "./universe-basic/extensions/universe-string-extensions";
 import { universeBasicProcessHelpers, UniVerseBasicProcessHelpers } from "./universe-basic/helpers/universe-basic-process-helpers";
 import { statementReferenceMasterHelper, StatementReferenceMasterHelper } from "./universe-basic/helpers/statement-master-helper-1";
-
+import { universeMainProcessUtils, UniVerseMainProcessUtils } from "./universe-basic/process-utilities/universe-main-process";
 export {
     universeUtilities,
     UniVerseUtilities,
@@ -18,5 +18,7 @@ export {
     universeBasicProcessHelpers,
     UniVerseBasicProcessHelpers,
     statementReferenceMasterHelper,
-    StatementReferenceMasterHelper
+    StatementReferenceMasterHelper,
+    universeMainProcessUtils,
+    UniVerseMainProcessUtils
 };

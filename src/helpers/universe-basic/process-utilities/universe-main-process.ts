@@ -7,7 +7,7 @@ import { FileMaster, ProjectMaster } from "../../../models";
 
 export default class UniVerseMainProcessUtils {
     constructor() { };
-    static changeExtensionStep = (project: ProjectMaster) => new Promise((resolve: Function, reject: Function) => {
+    public changeExtensionStep = (project: ProjectMaster) => new Promise((resolve: Function, reject: Function) => {
         try {
             const extRefPromise = floKaptureService.FileTypeMaster.getDocuments({
                 LanguageId: new Mongoose.Types.ObjectId(project.LanguageId)
@@ -26,7 +26,7 @@ export default class UniVerseMainProcessUtils {
         }
     });
 
-    static fileMasterImportStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public fileMasterImportStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const fileTypeMaster = await floKaptureService.FileTypeMaster
                 .getDocuments({ LanguageId: new Mongoose.Types.ObjectId(project.LanguageId) });
@@ -53,7 +53,7 @@ export default class UniVerseMainProcessUtils {
         }
     });
 
-    static processFileMenuStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public processFileMenuStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             var menuFilePath = path.join(project.ExtractedPath, "Menu", "MENUS.csv");
             var res: Promise<any> = await universeBasicProcessHelpers.processMenuFile(project, menuFilePath);
@@ -66,7 +66,7 @@ export default class UniVerseMainProcessUtils {
         }
     });
 
-    static processDataDictionaryStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public processDataDictionaryStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: Promise<any> = await universeBasicProcessHelpers.processUniVerseDataDictionary(project);
             resolve(res);
@@ -78,7 +78,7 @@ export default class UniVerseMainProcessUtils {
         }
     });
 
-    static processUniverseDescriptorsStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public processUniverseDescriptorsStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: unknown = await universeBasicProcessHelpers.processUniverseDescriptors(project);
             resolve(res);
@@ -90,7 +90,7 @@ export default class UniVerseMainProcessUtils {
         }
     });
 
-    static processUniVerseFilesStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public processUniVerseFilesStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: Promise<any> = await universeBasicProcessHelpers.processUniVerseFileTypes(project);
             resolve(res);
@@ -101,5 +101,7 @@ export default class UniVerseMainProcessUtils {
             console.log("UniVerse file types processing step completed successfully!.");
         }
     });
-
 }
+
+const universeMainProcessUtils: UniVerseMainProcessUtils = new UniVerseMainProcessUtils();
+export { universeMainProcessUtils, UniVerseMainProcessUtils };

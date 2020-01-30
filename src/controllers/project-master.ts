@@ -1,4 +1,4 @@
-import { extractProjectZip, fileNameWithoutExtension } from "../helpers"
+import { universeUtilities, universeStringExtensions } from "../helpers"
 import { Request, Response } from "express";
 import Mongoose from "mongoose";
 import Path from "path";
@@ -10,9 +10,9 @@ const addProject = async function (request: Request, response: Response) {
     var pm = request.body;
     var projectMaster: any = await floKaptureService.ProjectMaster.addItem(pm);
     await addProjectProcessingSteps(projectMaster._id);
-    extractProjectZip(projectMaster)
+    universeUtilities.extractProjectZip(projectMaster)
         .then(async (extractPath: string) => {
-            const fileName = fileNameWithoutExtension(projectMaster.UploadDetails.FileName);
+            const fileName = universeStringExtensions.fileNameWithoutExtension(projectMaster.UploadDetails.FileName);
             var extractedPath = Path.join(extractPath, fileName);
             var doc = await floKaptureService.ProjectMaster.findByIdAndUpdate(projectMaster._id, {
                 ExtractedPath: extractedPath
@@ -51,11 +51,11 @@ const getProjectProcessSteps = async function (request: Request, response: Respo
 
 const universeProcessingSteps = [{
     StepName: "ConfirmDirectoryStructure",
-    StepDesc: "Confirm directory dtructure with necessory files",
+    StepDesc: "Confirm directory structure with necessary files",
     CanReprocess: false
 }, {
-    StepName: "ChangeFileExtenstions",
-    StepDesc: "Change file extenstions depending upon directory structure like .jcl, .icd",
+    StepName: "ChangeFileExtensions",
+    StepDesc: "Change file extensions depending upon directory structure like .jcl, .icd",
     CanReprocess: false
 }, {
     StepName: "ExtractFileDetails",

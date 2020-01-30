@@ -1,21 +1,16 @@
 import { Request, Response } from "express";
 import floKaptureService from "../base-repositories/flokapture-db-service";
-import {
-    changeExtensionStep, fileMasterImportStep, processFileMenuStep,
-    processDataDictionaryStep, processUniverseDescriptorsStep
-} from "../helpers";
-import Mongoose from "mongoose";
-
+import { universeMainProcessUtils, commonHelper } from "../helpers";
 
 const startProcessing = async function (request: Request, response: Response) {
     const id: string = request.query.id;
     const projectMaster = await floKaptureService.ProjectMaster.findById(id);
     if (!projectMaster) response.status(304).send("Project details not found!");
-    var processStep = await fetchProcessStep(projectMaster._id, "ChangeFileExtenstions");
+    var processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ChangeFileExtenstions");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         var startedOn = new Date();
         try {
-            await changeExtensionStep(projectMaster);
+            await universeMainProcessUtils.changeExtensionStep(projectMaster);
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps.findByIdAndUpdate(processStep._id, {
                 StartedOn: startedOn, CompletedOn: completedOn
@@ -23,7 +18,7 @@ const startProcessing = async function (request: Request, response: Response) {
             console.log(stepDoc);
         } catch (error) {
             response.status(500).send({
-                message: "Error occured while changing the extensions of files",
+                message: "Error occurred while changing the extensions of files",
                 error
             }).end();
         }
@@ -31,18 +26,18 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from Change Extensions step");
         }
     }
-    processStep = await fetchProcessStep(projectMaster._id, "ExtractFileDetails");
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ExtractFileDetails");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         var startedOn = new Date();
         try {
-            await fileMasterImportStep(projectMaster);
+            await universeMainProcessUtils.fileMasterImportStep(projectMaster);
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
             response.status(500).send({
-                message: "Error occured while extracting file details information",
+                message: "Error occurred while extracting file details information",
                 error
             }).end();
         }
@@ -50,18 +45,18 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from extracting file details information step");
         }
     }
-    processStep = await fetchProcessStep(projectMaster._id, "ExtractFileMenuData");
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ExtractFileMenuData");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         try {
             var startedOn = new Date();
-            await processFileMenuStep(projectMaster);
+            await universeMainProcessUtils.processFileMenuStep(projectMaster);
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
             response.status(500).send({
-                message: "Error occured while processing menu file",
+                message: "Error occurred while processing menu file",
                 error
             }).end();
         }
@@ -69,18 +64,18 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from processing menu file step");
         }
     }
-    processStep = await fetchProcessStep(projectMaster._id, "UploadDataDictionary");
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "UploadDataDictionary");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         try {
             var startedOn = new Date();
-            await processDataDictionaryStep(projectMaster);
+            await universeMainProcessUtils.processDataDictionaryStep(projectMaster);
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
             return response.status(500).send({
-                message: "Error occured while processing data dictionary files",
+                message: "Error occurred while processing data dictionary files",
                 error
             }).end();
         }
@@ -88,18 +83,18 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from processing data dictionary files step");
         }
     }
-    processStep = await fetchProcessStep(projectMaster._id, "ProcessForUniverseDescriptor");
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessForUniverseDescriptor");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         try {
             var startedOn = new Date();
-            await processUniverseDescriptorsStep(projectMaster);
+            await universeMainProcessUtils.processUniverseDescriptorsStep(projectMaster);
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
             return response.status(500).send({
-                message: "Error occured while processing I-Descriptor files",
+                message: "Error occurred while processing I-Descriptor files",
                 error
             }).end();
         }
@@ -111,14 +106,6 @@ const startProcessing = async function (request: Request, response: Response) {
         message: "Project processing completed",
         project: projectMaster
     });
-};
-
-const fetchProcessStep = async function (projectId: string, stepName: string): Promise<any> {
-    var step = await floKaptureService.ProjectProcessingSteps.getItem({
-        ProjectId: new Mongoose.Types.ObjectId(projectId),
-        StepName: stepName
-    });
-    return !step ? null : step;
 };
 
 export { startProcessing };

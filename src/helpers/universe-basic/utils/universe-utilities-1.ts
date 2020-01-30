@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 class UniVerseUtilities {
-    static extractProjectZip = function (projectMaster: any) {
+    public extractProjectZip = function (projectMaster: any) {
         return new Promise((resolve, reject) => {
             var extractPath = path.join(__dirname, "../", "../", "ExtractedProjects");
             if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath);
@@ -13,7 +13,7 @@ class UniVerseUtilities {
                 }))
                 .on("error", (err: any) => {
                     reject({
-                        message: "Error occured while extracting .zip",
+                        message: "Error occurred while extracting .zip",
                         project: JSON.stringify(projectMaster),
                         error: JSON.stringify(err)
                     });
@@ -24,7 +24,7 @@ class UniVerseUtilities {
         });
     };
 
-    static vaidateDirStructure = function (rootPath: string) {
+    static validateDirStructure = function (rootPath: string) {
         const dirNames = ["Programs", "Jcl", "Include", "Menu", "I-Descriptors", "DataDictionary"];
         if (!fs.existsSync(rootPath)) return false;
 
