@@ -1,10 +1,10 @@
 import { universeMainProcessUtils } from "../helpers";
 import { Request, Response } from "express";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 import Mongoose from "mongoose";
 
 const test = async function (request: Request, response: Response) {
-    const id:string = request.query.id;
+    const id: string = request.query.id;
     const projectMaster = await floKaptureService.ProjectMaster.findById(id);
     if (!projectMaster) response.end();
     try {

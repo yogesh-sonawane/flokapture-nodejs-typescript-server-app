@@ -42,7 +42,7 @@ const fileTypeMasterRoutes = [
 ];
 
 const projectProcessingRoutes = [
-    ["api/process-universe-project/start-process", "process-universe-project#startProcessing", "get"]
+    ["api/process-universe-project/start-process", "process-universe-project#startProcessing", "post"]
 ];
 
 const fileMasterRoutes = [

@@ -8,3 +8,10 @@ export default class LineDetails {
     businessName?: string;
     referenceFileId?: Mongoose.Types.ObjectId | null | string = ""
 };
+
+export class FileStatics {
+    lineCount: number = 0;
+    processedLineCount: number = 0;
+    parsed: boolean = false;
+    exceptions: any = null;
+};

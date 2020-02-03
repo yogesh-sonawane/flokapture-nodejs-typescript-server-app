@@ -1,4 +1,4 @@
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 import { Request, Response } from "express";
 import { ObjectId } from "mongodb";
 

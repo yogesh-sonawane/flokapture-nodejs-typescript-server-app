@@ -1,11 +1,13 @@
-var UnZipper = require("unzipper");
+var UnZipper: any = require("unzipper");
 import fs from "fs";
 import path from "path";
 
 class UniVerseUtilities {
     public extractProjectZip = function (projectMaster: any) {
         return new Promise((resolve, reject) => {
-            var extractPath = path.join(__dirname, "../", "../", "ExtractedProjects");
+            var filePath = path.relative("dist", __dirname);
+            var srcPath = __dirname.replace(filePath, "");
+            var extractPath = path.join(srcPath, "ExtractedProjects");
             if (!fs.existsSync(extractPath)) fs.mkdirSync(extractPath);
             fs.createReadStream(projectMaster.UploadDetails.CompletePath)
                 .pipe(UnZipper.Extract({

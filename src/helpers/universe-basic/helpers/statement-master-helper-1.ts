@@ -3,7 +3,7 @@ import { LineDetails } from "../../models";
 import { universeStringExtensions } from "../extensions/universe-string-extensions";
 import { StatementReferenceMaster, FileMaster, FileContentMaster, BaseCommandReferenceMaster, BaseCommandMaster } from "../../../models";
 import { universeArrayExtensions } from "../extensions/array-extensions";
-import floKaptureService from "../../../base-repositories/flokapture-db-service";
+import {floKaptureService} from "../../../base-repositories/flokapture-db-service";
 
 export class StatementReferenceMasterHelper {
     constructor() { };

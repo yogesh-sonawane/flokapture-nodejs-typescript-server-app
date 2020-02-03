@@ -1,12 +1,22 @@
 import { Request, Response } from "express";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 import { universeMainProcessUtils, commonHelper } from "../helpers";
+import { ProjectMaster } from "../models";
 
 const startProcessing = async function (request: Request, response: Response) {
-    const id: string = request.query.id;
-    const projectMaster = await floKaptureService.ProjectMaster.findById(id);
+    const project: ProjectMaster = request.body;
+    const projectMaster = await floKaptureService.ProjectMaster.findById(project._id);
     if (!projectMaster) response.status(304).send("Project details not found!");
-    var processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ChangeFileExtenstions");
+    if (!(projectMaster.ProcessingStatus === 0)) return response.status(404).json({
+        status: "Project is either in process or processing!.",
+        project: projectMaster
+    }).end();
+
+    await floKaptureService.ProjectMaster.findByIdAndUpdate(projectMaster._id, {
+        ProcessingStatus: 2
+    });
+
+    var processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ChangeFileExtensions");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         var startedOn = new Date();
         try {

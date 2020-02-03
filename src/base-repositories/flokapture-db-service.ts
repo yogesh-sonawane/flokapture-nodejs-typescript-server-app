@@ -5,7 +5,7 @@ import {
     LanguageMasterSchema,
     LanguageMaster,
     BaseCommandRefSchema,
-    ProcessingStepsSchema,
+    ProcessingStepSchema,
     UserMasterSchema,
     RoleMasterSchema,
     FileMasterSchema,
@@ -30,7 +30,7 @@ import {
     UniVerseFileMenuMaster,
     UniVerseDataDictionary,
     UniVerseDescriptorMaster,
-    ProjectProcessingSteps,
+    ProjectProcessingStep,
     UserMaster
 } from "../models";
 
@@ -55,7 +55,7 @@ class FloKaptureService {
     public WorkspaceMaster = new BaseRepository<WorkspaceMaster>({ collectionName: "WorkspaceMaster", schema: WorkspaceMasterSchema });
     public ProjectMaster = new BaseRepository<ProjectMaster>({ collectionName: "ProjectMaster", schema: ProjectMasterSchema });
     public BaseCommandReferenceMaster = new BaseRepository<BaseCommandReferenceMaster>({ collectionName: "BaseCommandReferenceMaster", schema: BaseCommandRefSchema });
-    public ProjectProcessingSteps = new BaseRepository<ProjectProcessingSteps>({ collectionName: "ProjectProcessingSteps", schema: ProcessingStepsSchema });
+    public ProjectProcessingSteps = new BaseRepository<ProjectProcessingStep>({ collectionName: "ProjectProcessingSteps", schema: ProcessingStepSchema });
     public UserMaster = new BaseRepository<UserMaster>({ collectionName: "UserMaster", schema: UserMasterSchema });
     public RoleMaster = new BaseRepository<RoleMaster>({ collectionName: "RoleMaster", schema: RoleMasterSchema });
     public FileMaster = new BaseRepository<FileMaster>({ collectionName: "FileMaster", schema: FileMasterSchema });
@@ -70,4 +70,5 @@ class FloKaptureService {
 }
 
 const floKaptureService: FloKaptureService = new FloKaptureService();
-export default floKaptureService;  
+
+export {floKaptureService, FloKaptureService};  

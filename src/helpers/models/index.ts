@@ -1,3 +1,3 @@
-import LineDetails from "./line-details";
+import LineDetails, { FileStatics } from "./line-details";
 
-export { LineDetails };
+export { LineDetails, FileStatics };

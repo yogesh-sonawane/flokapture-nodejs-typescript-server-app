@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 
 const addRole = function (request: Request, response: Response) {
     var roleMaster = request.body;

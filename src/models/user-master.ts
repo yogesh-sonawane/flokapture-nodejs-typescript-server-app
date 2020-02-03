@@ -2,7 +2,7 @@ import Mongoose from "mongoose";
 var Jwt = require('jsonwebtoken');
 var _ = require('lodash');
 var bcryptJs = require('bcryptjs');
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import {floKaptureService} from "../base-repositories/flokapture-db-service";
 import isEmail from "validator/lib/isEmail";
 
 const UserMasterSchema: Mongoose.Schema<UserMaster> = new Mongoose.Schema({

@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import Mongoose from "mongoose";
-import floKaptureService from "../../base-repositories/flokapture-db-service";
-import { ProjectMaster, FileMaster, FileTypeMaster, ProjectProcessingSteps } from "../../models";
+import {floKaptureService} from "../../base-repositories/flokapture-db-service";
+import { ProjectMaster, FileMaster, FileTypeMaster, ProjectProcessingStep } from "../../models";
 import { universeStringExtensions } from "../universe-basic/extensions/universe-string-extensions";
 
 class CommonHelper {
@@ -54,8 +54,8 @@ class CommonHelper {
             FileTypeMasterId: fileType._id
         };
     };
-    fetchProcessStep = async function (projectId: string, stepName: string): Promise<ProjectProcessingSteps> {
-        var step: ProjectProcessingSteps = await floKaptureService.ProjectProcessingSteps.getItem({
+    fetchProcessStep = async function (projectId: string, stepName: string): Promise<ProjectProcessingStep> {
+        var step: ProjectProcessingStep = await floKaptureService.ProjectProcessingSteps.getItem({
             ProjectId: new Mongoose.Types.ObjectId(projectId),
             StepName: stepName
         });

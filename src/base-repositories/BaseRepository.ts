@@ -7,6 +7,7 @@ import IBaseRepository from "./IBaseRepository";
 import Mongoose, { DocumentQuery } from "mongoose";
 import { isArray } from "util";
 import { Db, Collection, ObjectId } from "mongodb";
+import { PartialObject } from "lodash";
 const dbConnection: Mongoose.Connection = globalAny.dbConnection as Mongoose.Connection;
 const mongoDbConnection: Db = globalAny.mongoDbConnection as Db;
 // const mongoClient: MongoClient = globalAny.mongoDbClient as MongoClient;
@@ -120,8 +121,8 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         return (await this.mongooseModel.insertMany(items)).map((docs: TSource): TSource => docs.toObject());
     }
 
-    async findByIdAndUpdate(id: string | ObjectId, fieldsToUpdate: Object): Promise<TSource> {
-        var _id = id instanceof ObjectId ? id : Mongoose.Types.ObjectId(id);
+    async findByIdAndUpdate(id: string | ObjectId, fieldsToUpdate: PartialObject<TSource>): Promise<TSource> {
+        var _id: ObjectId = id instanceof ObjectId ? id : Mongoose.Types.ObjectId(id);
         return await this.mongooseModel.findByIdAndUpdate(_id, fieldsToUpdate, {
             new: true,
             runValidators: true

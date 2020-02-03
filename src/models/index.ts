@@ -1,7 +1,7 @@
 import { WorkspaceMasterSchema, WorkspaceMaster } from "../models/workspace-master";
 import { LanguageMasterSchema, LanguageMaster } from "../models/language-master";
 import { ProjectMasterSchema, ProjectMaster } from "../models/project-master";
-import { ProcessingStepsSchema, ProjectProcessingSteps } from "../models/project-processing-steps";
+import { ProcessingStepSchema, ProjectProcessingStep } from "../models/project-processing-steps";
 import { UserMasterSchema, UserMaster } from "./user-master";
 import { RoleMasterSchema, RoleMaster } from "./role-master";
 import { FileMasterSchema, FileMaster } from "./file-master";
@@ -29,8 +29,8 @@ export {
     ProjectMasterSchema,
     ProjectMaster,
 
-    ProcessingStepsSchema,
-    ProjectProcessingSteps,
+    ProcessingStepSchema,
+    ProjectProcessingStep,
 
     UserMasterSchema,
     UserMaster,

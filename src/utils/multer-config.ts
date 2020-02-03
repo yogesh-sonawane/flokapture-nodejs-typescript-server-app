@@ -5,7 +5,7 @@ const Multer = require('multer');
 
 let Storage = Multer.diskStorage({
     destination: function (request: Request, file: Object, cb: Function) {
-        var uploadDirName = request.query.uploadDirName;
+        var uploadDirName: string = request.query.uploadDirName;
         var uploadPath = join(__dirname, '../', uploadDirName);
         if (!existsSync(uploadPath)) {
             mkdirSync(uploadPath);
@@ -13,7 +13,7 @@ let Storage = Multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (request: any, file: any, cb: Function) {
-        var uploadDirName = request.query.uploadDirName;
+        var uploadDirName: string = request.query.uploadDirName;
         var uploadPath = join(__dirname, '../', uploadDirName);
         var completePath = join(uploadPath, file.originalname);
         request.uploadDetails = {

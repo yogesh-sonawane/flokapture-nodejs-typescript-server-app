@@ -2,7 +2,7 @@ import { universeUtilities, universeStringExtensions } from "../helpers"
 import { Request, Response } from "express";
 import Mongoose from "mongoose";
 import Path from "path";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 import { ProjectMaster } from "../models";
 const { multerConfig } = require("../utils/multer-config");
 

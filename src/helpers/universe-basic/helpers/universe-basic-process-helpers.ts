@@ -1,14 +1,15 @@
 import Mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
-import floKaptureService from "../../../base-repositories/flokapture-db-service";
-import { ProjectMaster, UniVerseDataDictionary, BaseCommandReferenceMaster } from "../../../models";
+import { floKaptureService } from "../../../base-repositories/flokapture-db-service";
+import { ProjectMaster, UniVerseDataDictionary, BaseCommandReferenceMaster, FileTypeMaster, FileMaster } from "../../../models";
 import { universeUtilities, universeStringExtensions, statementReferenceMasterHelper } from "../../";
+import { FileStatics } from "../../models";
 const csvParser: any = require('csv-parser');
 
 class UniVerseBasicProcessHelpers {
     constructor() { }
-    processMenuFile = (project: ProjectMaster, filePath: string): Promise<any> => new Promise((resolve: Function, reject: Function) => {
+    public processMenuFile = (project: ProjectMaster, filePath: string): Promise<any> => new Promise((resolve: Function, reject: Function) => {
         var rowCount = -1;
         fs.createReadStream(filePath)
             .pipe(csvParser())
@@ -26,16 +27,14 @@ class UniVerseBasicProcessHelpers {
                     }
                     await floKaptureService.UniVerseFileMenuMaster.addItem(menuDetails);
                 } catch (error) {
-                    reject({ message: "Error occured while menu file processing", error });
+                    reject({ message: "Error occurred while menu file processing", error });
                 }
-            })
-            .on('end', () => {
+            }).on('end', () => {
                 console.log('CSV file processed successfully!.');
                 resolve({ message: "Menu file processed successfully!!" });
-            })
-            .on("error", (err: any) => {
+            }).on("error", (err: any) => {
                 console.error(err);
-                reject({ message: "Error occured while menu file processing" });
+                reject({ message: "Error occurred while menu file processing" });
             });
     });
 
@@ -58,94 +57,156 @@ class UniVerseBasicProcessHelpers {
         } as UniVerseDataDictionary;
     };
 
-    processUniVerseDataDictionary = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
+    public processUniVerseDataDictionary = async (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         const fastCsv: any = require("fast-csv");
         const extensionMaster: any = await floKaptureService.FileTypeMaster.getItem({
             LanguageId: new Mongoose.Types.ObjectId(project.LanguageId),
             FileTypeName: /^entity$/ig
         });
         // const extensionMaster = extRef.toObject();
+        const dataDictionaries: Array<FileMaster> = await floKaptureService.FileMaster.getDocuments({
+            FileTypeMasterId: extensionMaster._id,
+            ProjectId: project._id,
+            Processed: false
+        });
+        for (const file of dataDictionaries) {
+            const modifiedFilePath = universeUtilities.replaceContentsForEscapeChar(file.FilePath); // Ex. "ID","Ap.key:"*":seq.nbr","Bp2010.temp"
+            fs.createReadStream(modifiedFilePath).pipe(fastCsv.parse({
+                headers: true
+            }).on("data", async (data: any) => {
+                const dataDictionary: any = this.prepareDataDictionary(data, project);
+                await floKaptureService.UniVerseDataDictionaryMaster.addItem(dataDictionary);
+            }).on("error", (error: any) => {
+                reject({ message: "Error occurred while menu file processing", error });
+            }).on("end", () => {
+                console.log('All data dictionary files processed successfully!.');
+                resolve({ message: "Menu file processed successfully!!" });
+            }));
+        }
+        /*
         for (const folder of extensionMaster.FolderNames) {
             var dirPath = path.join(project.ExtractedPath, folder);
             const files = universeUtilities.getAllFilesFromPath(dirPath, []);
-            for (const file of files) {
-                const modifiedFilePath = universeUtilities.replaceContentsForEscapeChar(file); // Ex. "ID","Ap.key:"*":seq.nbr","Bp2010.temp"
+            for (const file of dataDictionaries) {
+                const modifiedFilePath = universeUtilities.replaceContentsForEscapeChar(file.FilePath); // Ex. "ID","Ap.key:"*":seq.nbr","Bp2010.temp"
                 fs.createReadStream(modifiedFilePath).pipe(fastCsv.parse({
                     headers: true
                 }).on("data", async (data: any) => {
                     const dataDictionary: any = this.prepareDataDictionary(data, project);
                     await floKaptureService.UniVerseDataDictionaryMaster.addItem(dataDictionary);
                 })
-                    .on("error", (error: any) => {
-                        reject({ message: "Error occured while menu file processing", error });
-                    })
-                    .on("end", () => {
-                        console.log('All data dictionary files processed successfully!.');
-                        resolve({ message: "Menu file processed successfully!!" });
-                    }));
+                .on("error", (error: any) => {
+                    reject({ message: "Error occurred while menu file processing", error });
+                })
+                .on("end", () => {
+                    console.log('All data dictionary files processed successfully!.');
+                    resolve({ message: "Menu file processed successfully!!" });
+                }));
             }
         }
+        */
     });
 
-    protected async processDescriptorFile(csvFile: string, delimiter: string, project: ProjectMaster) {
+    protected async processDescriptorFile(csvFile: FileMaster, delimiter: string, project: ProjectMaster): Promise<FileStatics> {
         const splitRegExp =
             new RegExp(`\\${delimiter}(?!(?<=(?:^|,)\\s*"(?:[^"]|""|\\\\")*,)(?:[^"]|""|\\\\")*"\\s*(?:,|$))`, "ig");
-        const readStream = fs.readFileSync(csvFile);
-        const entityName = universeStringExtensions.fileNameWithoutExtension(path.basename(csvFile));
+        const readStream = fs.readFileSync(csvFile.FilePath);
+        const entityName = universeStringExtensions.fileNameWithoutExtension(path.win32.basename(csvFile.FilePath));
         const descLines = readStream.toString().split('\n');
         const headers = descLines.shift().split(splitRegExp);
-        const idescRecordHeaders = [
-            "Entity", // 0
-            "StoredProcedureName", // 1
-            "Type", // 2
-            "DefaultReportDisplayHeading", // 3
-            "DefaultFormating", // 4
-            "DefaultConversion", // 5
-            "ValuedAssociation", // 6
-            "LongDescription", // 7
-            "StatementString" // 8
-        ];
-        for (const descLine of descLines) {
-            // console.log("==========================================");
-            await universeUtilities.waitForMoment(300);
-            if (typeof descLine === "undefined" || descLine === null || descLine === "") continue;
-            const splitedLines = descLine.split(splitRegExp);
-            // var record: any = {};
-            var count = -1;
-            const idescRecord: any = {};
-            idescRecord[idescRecordHeaders[++count]] = entityName;
-            for (const header of headers) {
-                var shifted: string = splitedLines.shift() || "";
-                const recordValue: string = shifted.replace(/\n/ig, '').trim();
-                // record[header] = recordValue;
-                idescRecord[idescRecordHeaders[++count]] = recordValue;
+        let processLineCount: number = -1;
+        try {
+            const idescRecordHeaders = [
+                "Entity", // 0
+                "StoredProcedureName", // 1
+                "Type", // 2
+                "DefaultReportDisplayHeading", // 3
+                "DefaultFormating", // 4
+                "DefaultConversion", // 5
+                "ValuedAssociation", // 6
+                "LongDescription", // 7
+                "StatementString" // 8
+            ];
+
+            for (const descLine of descLines) {
+                // console.log("==========================================");
+                // await universeUtilities.waitForMoment(300);
+                ++processLineCount;
+                if (typeof descLine === "undefined" || descLine === null || descLine === "") continue;
+                const splitedLines = descLine.split(splitRegExp);
+                // var record: any = {};
+                var count = -1;
+                const idescRecord: any = {};
+                idescRecord[idescRecordHeaders[++count]] = entityName;
+                for (const header of headers) {
+                    var shifted: string = splitedLines.shift() || "";
+                    const recordValue: string = shifted.replace(/\n/ig, '').trim();
+                    // record[header] = recordValue;
+                    idescRecord[idescRecordHeaders[++count]] = recordValue;
+                };
+                idescRecord["ProjectId"] = project._id;
+                // console.log(idescRecord);
+                await floKaptureService.UniVerseDescriptorMaster.addItem(idescRecord);
+            }
+            const fileStatics: FileStatics = {
+                lineCount: descLines.length,
+                processedLineCount: processLineCount,
+                parsed: true,
+                exceptions: null
             };
-            idescRecord["ProjectId"] = project._id;
-            // console.log(idescRecord);
-            await floKaptureService.UniVerseDescriptorMaster.addItem(idescRecord);
-        }
+
+            await floKaptureService.FileMaster.findByIdAndUpdate(csvFile._id, {
+                FileStatics: fileStatics,
+                Processed: true
+            });
+            return fileStatics;
+        } catch (error) {
+            let fileStatics: FileStatics = {
+                lineCount: descLines.length,
+                processedLineCount: processLineCount,
+                parsed: false,
+                exceptions: error
+            };
+            await floKaptureService.FileMaster.findByIdAndUpdate(csvFile._id, {
+                FileStatics: fileStatics,
+                Processed: true
+            });
+            return fileStatics;
+        } finally { }
     };
 
     public processUniverseDescriptors = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         try {
-            const extensionMaster: any = await floKaptureService.FileTypeMaster.getItem({
+            const extensionMaster: FileTypeMaster = await floKaptureService.FileTypeMaster.getItem({
                 LanguageId: new Mongoose.Types.ObjectId(project.LanguageId),
                 FileTypeName: /descriptor$/ig
             });
             // Following delimiter character needs to be taken from database
             // This should be configured in file type extension master table.
             // If not, then stop processing and ask user to configure it before processing I-Descriptor files.
-            const delimiter: string = project.IsCtCode ? ',' : '\\';
+            const idescFiles: Array<FileMaster> = await floKaptureService.FileMaster.getDocuments({
+                FileTypeMasterId: extensionMaster._id,
+                ProjectId: project._id,
+                Processed: false
+            });
+            const delimiter: string = extensionMaster.Delimiter;
+            for (const descFile of idescFiles) {
+                await this.processDescriptorFile(descFile, delimiter, project);
+                await universeUtilities.waitForMoment(200);
+            }
+            /* 
             for (const folder of extensionMaster.FolderNames) {
                 var dirPath = path.join(project.ExtractedPath, folder);
                 const descFiles = universeUtilities.getAllFilesFromPath(dirPath, []);
-                for (const descFile of descFiles) {
-                    await this.processDescriptorFile(descFile, delimiter, project);
+                for (const descFile of idescFiles) {
+                    await this.processDescriptorFile(descFile.FilePath, delimiter, project);
+                    await universeUtilities.waitForMoment(200);
                 }
             }
+            */
             resolve({ message: "I-Descriptor files processed successfully!!" });
         } catch (error) {
-            reject({ message: "Error occured while I-Descriptor files processing!", error });
+            reject({ message: "Error occurred while I-Descriptor files processing!", error });
         }
     });
 
@@ -169,7 +230,7 @@ class UniVerseBasicProcessHelpers {
             }
             resolve({ message: "All files/objects are processed.", project });
         } catch (error) {
-            reject({ message: "Error occured while processing files.", error });
+            reject({ message: "Error occurred while processing files.", error });
         }
     });
 }

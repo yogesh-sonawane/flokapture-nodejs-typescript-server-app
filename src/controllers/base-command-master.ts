@@ -1,5 +1,5 @@
 import { Response, Request } from "express";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 import Mongoose from "mongoose";
 const addBaseCommandMaster = function (request: Request, response: Response) {
     var res = floKaptureService.BaseCommandReferenceMaster.addItem(request.body);

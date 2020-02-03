@@ -1,7 +1,7 @@
 import Mongoose from "mongoose";
 var moment: any = require("moment");
 
-const ProcessingStepsSchema: Mongoose.Schema<ProjectProcessingSteps> = new Mongoose.Schema({
+const ProcessingStepSchema: Mongoose.Schema<ProjectProcessingStep> = new Mongoose.Schema({
     ProcessingStepId: {
         auto: true,
         type: Mongoose.Types.ObjectId
@@ -53,7 +53,7 @@ const ProcessingStepsSchema: Mongoose.Schema<ProjectProcessingSteps> = new Mongo
     }
 });
 
-class ProjectProcessingSteps extends Mongoose.Document {
+class ProjectProcessingStep extends Mongoose.Document {
     public ProcessingStepId: Mongoose.Types.ObjectId | string;
     public ProjectId: Mongoose.Types.ObjectId | string;
     public StepName: string;
@@ -66,4 +66,4 @@ class ProjectProcessingSteps extends Mongoose.Document {
     }
 };
 
-export { ProcessingStepsSchema, ProjectProcessingSteps };
+export { ProcessingStepSchema, ProjectProcessingStep };

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import Mongoose from "mongoose";
 const _ = require('lodash');
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 
 var createUser = function (request: Request, response: Response) {
     var user = request.body;

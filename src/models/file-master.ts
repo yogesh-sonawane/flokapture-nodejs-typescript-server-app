@@ -3,6 +3,13 @@ import { fileTypeMasterVirtuals, projectMasterVirtuals } from "../model-virtuals
 import { FileTypeMaster, ProjectMaster } from ".";
 const ObjectId = Mongoose.Types.ObjectId;
 
+class FileStatics {
+    lineCount: number = 0;
+    processedLineCount: number = 0;
+    parsed: boolean = false;
+    exceptions: any = null;
+};
+
 const FileMasterSchema: Mongoose.Schema<FileMaster> = new Mongoose.Schema({
     FileId: {
         auto: true,
@@ -46,6 +53,10 @@ const FileMasterSchema: Mongoose.Schema<FileMaster> = new Mongoose.Schema({
         type: String,
         required: false,
         default: null
+    },
+    FileStatics: {
+        type: FileStatics,
+        default: null        
     }
 });
 
@@ -66,6 +77,7 @@ class FileMaster extends Mongoose.Document {
     public WorkFlowStatus: string;
     public FileTypeMaster: FileTypeMaster;
     public ProjectMaster: ProjectMaster;
+    public FileStatics: FileStatics;
 }
 
 export { FileMasterSchema, FileMaster };

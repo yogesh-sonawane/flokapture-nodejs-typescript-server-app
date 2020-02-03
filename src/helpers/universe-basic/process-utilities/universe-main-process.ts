@@ -1,7 +1,7 @@
 import Mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
-import floKaptureService from "../../../base-repositories/flokapture-db-service";
+import {floKaptureService} from "../../../base-repositories/flokapture-db-service";
 import { commonHelper, universeUtilities, universeBasicProcessHelpers } from "../../index";
 import { FileMaster, ProjectMaster } from "../../../models";
 
@@ -59,7 +59,7 @@ export default class UniVerseMainProcessUtils {
             var res: Promise<any> = await universeBasicProcessHelpers.processMenuFile(project, menuFilePath);
             resolve(res);
         } catch (error) {
-            reject({ message: "Error occured while menu file processing", error });
+            reject({ message: "Error occurred while menu file processing", error });
         }
         finally {
 
@@ -71,7 +71,7 @@ export default class UniVerseMainProcessUtils {
             const res: Promise<any> = await universeBasicProcessHelpers.processUniVerseDataDictionary(project);
             resolve(res);
         } catch (error) {
-            reject({ message: "Error occured while data dictionary files processing!", error });
+            reject({ message: "Error occurred while data dictionary files processing!", error });
         }
         finally {
             console.log("Data dictionary files processing step completed successfully!.");
@@ -83,7 +83,7 @@ export default class UniVerseMainProcessUtils {
             const res: unknown = await universeBasicProcessHelpers.processUniverseDescriptors(project);
             resolve(res);
         } catch (error) {
-            reject({ message: "Error occured while I-Descriptor files processing!", error });
+            reject({ message: "Error occurred while I-Descriptor files processing!", error });
         }
         finally {
             console.log("I-Descriptor files processing step completed successfully!.");
@@ -92,10 +92,10 @@ export default class UniVerseMainProcessUtils {
 
     public processUniVerseFilesStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
-            const res: Promise<any> = await universeBasicProcessHelpers.processUniVerseFileTypes(project);
+            const res: any = await universeBasicProcessHelpers.processUniVerseFileTypes(project);
             resolve(res);
         } catch (error) {
-            reject({ message: "Error occured while UniVerse file types processing!", error });
+            reject({ message: "Error occurred while UniVerse file types processing!", error });
         }
         finally {
             console.log("UniVerse file types processing step completed successfully!.");

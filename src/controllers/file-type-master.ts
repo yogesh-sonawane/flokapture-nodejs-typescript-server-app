@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import floKaptureService from "../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../base-repositories/flokapture-db-service";
 
 const addFileTypeMaster = function (request: Request, response: Response) {
     var fileTypeMaster = request.body;
@@ -20,7 +20,7 @@ const getAll = function (request: Request, response: Response) {
     });
 };
 
-const getDocuments = function (request: Request, response: Response){
+const getDocuments = function (request: Request, response: Response) {
     const filter = request.body;
     const promise = floKaptureService.FileTypeMaster.getDocuments(filter);
     promise.then(docs => {
