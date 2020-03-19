@@ -25,7 +25,6 @@ export default class UniVerseMainProcessUtils {
             reject(error)
         }
     });
-
     public fileMasterImportStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const fileTypeMaster = await floKaptureService.FileTypeMaster
@@ -52,7 +51,6 @@ export default class UniVerseMainProcessUtils {
             reject(error);
         }
     });
-
     public processFileMenuStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             var menuFilePath = path.join(project.ExtractedPath, "Menu", "MENUS.csv");
@@ -65,7 +63,6 @@ export default class UniVerseMainProcessUtils {
 
         }
     });
-
     public processDataDictionaryStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: Promise<any> = await universeBasicProcessHelpers.processUniVerseDataDictionary(project);
@@ -77,7 +74,6 @@ export default class UniVerseMainProcessUtils {
             console.log("Data dictionary files processing step completed successfully!.");
         }
     });
-
     public processUniverseDescriptorsStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: unknown = await universeBasicProcessHelpers.processUniverseDescriptors(project);
@@ -89,7 +85,6 @@ export default class UniVerseMainProcessUtils {
             console.log("I-Descriptor files processing step completed successfully!.");
         }
     });
-
     public processUniVerseFilesStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const res: any = await universeBasicProcessHelpers.processUniVerseFileTypes(project);

@@ -4,7 +4,7 @@ import { ProjectMasterSchema, ProjectMaster } from "../models/project-master";
 import { ProcessingStepSchema, ProjectProcessingStep } from "../models/project-processing-steps";
 import { UserMasterSchema, UserMaster } from "./user-master";
 import { RoleMasterSchema, RoleMaster } from "./role-master";
-import { FileMasterSchema, FileMaster } from "./file-master";
+import { FileMasterSchema, FileMaster, ReferenceFileMasterSchema, ReferenceFileMaster } from "./file-master";
 import { UniVerseFileMenuSchema, UniVerseFileMenuMaster } from "./universe-file-menu";
 import { UniVerseDataDictionarySchema, UniVerseDataDictionary } from "./universe-data-dictionary";
 import { StatementReferenceMasterSchema, StatementReferenceMaster } from "./statement-reference-master";
@@ -14,9 +14,11 @@ import { BaseCommandRefSchema, BaseCommandReferenceMaster } from "./base-command
 import { FileTypeMasterSchema, FileTypeMaster } from "./file-type-master";
 import { BaseCommandMasterSchema, BaseCommandMaster } from "./base-command-master";
 import { ProjectDirInfo, ProjectDirInfoSchema } from "./project-directory-info";
-
+import TSource from "./t-source-base";
 
 export {
+    TSource,
+
     WorkspaceMasterSchema,
     WorkspaceMaster,
 
@@ -39,6 +41,8 @@ export {
     RoleMaster,
 
     FileMasterSchema,
+    ReferenceFileMasterSchema,
+    ReferenceFileMaster,
     FileMaster,
 
     ProjectDirInfoSchema,

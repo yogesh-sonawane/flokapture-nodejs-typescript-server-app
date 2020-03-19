@@ -13,14 +13,12 @@ const FileContentMasterSchema: Mongoose.Schema<FileContentMaster> = new Mongoose
         type: Mongoose.Types.ObjectId
     },
     FileContent: {
-        required: true,
+        required: false,
         type: String,
-        default: "no-contents"
     },
     ContentWithoutComments: {
-        required: true,
+        required: false,
         type: String,
-        default: "no-contents"
     }
 });
 

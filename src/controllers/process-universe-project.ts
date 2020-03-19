@@ -112,9 +112,39 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from I-Descriptor files step");
         }
     }
-    response.status(200).json({
-        message: "Project processing completed",
-        project: projectMaster
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessUniVerseJcls");
+    if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
+        try {
+            var startedOn = new Date();
+            await universeMainProcessUtils.processUniVerseFilesStep(projectMaster);
+            var completedOn = new Date();
+            var stepDoc = await floKaptureService.ProjectProcessingSteps
+                .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
+            console.log(stepDoc);
+        } catch (error) {
+            return response.status(500).send({
+                message: "Error occurred while processing Universe files",
+                error
+            }).end();
+        }
+        finally {
+            console.info("This message is from processing Universe files step");
+        }
+    }
+
+    floKaptureService.ProjectMaster.findByIdAndUpdate(projectMaster._id, {
+        ProcessingStatus: 1
+    }).then((updatedProject) => {
+        response.status(200).json({
+            message: "Project processing completed",
+            project: updatedProject
+        });
+    }).catch(err => {
+        response.status(500).json({
+            message: "Project processing completed",
+            project: projectMaster,
+            error: err
+        });
     });
 };
 

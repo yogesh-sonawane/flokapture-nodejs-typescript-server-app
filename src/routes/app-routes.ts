@@ -47,7 +47,18 @@ const projectProcessingRoutes = [
 
 const fileMasterRoutes = [
     ["api/file-master/get-all", "file-master#getAll", "get"],
-    ["api/file-master/get-documents", "file-master#getDocuments", "post"]
+    ["api/file-master/get-documents", "file-master#getDocuments", "post"],
+    ["api/file-master/agg-all", "file-master#aggregateAll", "get"]
+];
+
+const statementReferenceMasterRoutes: string[][] = [
+    ["api/statement-reference-master/get-documents", "statement-reference-master#getDocuments", "post"],
+    ["api/statement-reference-master/decision-matrix", "statement-reference-master#decisionMatrix", "post"],
+    ["api/statement-reference-master/update-documents", "statement-reference-master#updateDocuments", "get"]
+];
+
+const keywordSearchRoutes: string[][] = [
+    ["api/keyword-search/keyword-search", "keyword-search#keywordSearch", "post"]
 ];
 
 var appRoutes: any[] = Array.prototype.concat(
@@ -59,7 +70,9 @@ var appRoutes: any[] = Array.prototype.concat(
     roleMasterRoutes,
     fileTypeMasterRoutes,
     projectProcessingRoutes,
-    fileMasterRoutes
+    fileMasterRoutes,
+    statementReferenceMasterRoutes,
+    keywordSearchRoutes
 );
 
 module.exports = appRoutes;

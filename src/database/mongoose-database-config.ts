@@ -35,7 +35,7 @@ const mongoDbOpt: Mongoose.ConnectionOptions = {
 
 const dbServer = function () {
     Mongoose.Promise = global.Promise;
-    return Mongoose.createConnection(mongoDbUrl, mongoDbOpt)
+    return Mongoose.createConnection(mongoDbUrl, mongoDbOpt)    
         .on("connected", function () {
             console.log("Database connection succeeded!!");
             console.log('=======================================================================');
@@ -50,5 +50,5 @@ const dbServer = function () {
             console.log('=======================================================================');
         });
 };
-const dbConnection = dbServer();
+const dbConnection: Mongoose.Connection = dbServer();
 exports.dbConnection = globalAny.dbConnection = dbConnection;

@@ -1,19 +1,20 @@
 const globalAny: any = global;
-// const mongooseLeanVirtuals = require('mongoose-lean-virtuals');
-// const mongooseLeanGetters = require('mongoose-lean-getters');
-// const mongooseLeanDefaults = require('mongoose-lean-defaults');
-const mongooseAutopopulate = require('mongoose-autopopulate');
+const mongooseLeanVirtuals: any = require('mongoose-lean-virtuals');
+const mongooseLeanGetters: any = require('mongoose-lean-getters');
+const mongooseLeanDefaults: any = require('mongoose-lean-defaults');
+const mongooseAutopopulate: any = require('mongoose-autopopulate');
 import IBaseRepository from "./IBaseRepository";
 import Mongoose, { DocumentQuery } from "mongoose";
 import { isArray } from "util";
 import { Db, Collection, ObjectId } from "mongodb";
 import { PartialObject } from "lodash";
+// import { TSource } from "../models";
 const dbConnection: Mongoose.Connection = globalAny.dbConnection as Mongoose.Connection;
 const mongoDbConnection: Db = globalAny.mongoDbConnection as Db;
 // const mongoClient: MongoClient = globalAny.mongoDbClient as MongoClient;
 
 export default class BaseRepository<TSource extends Mongoose.Document> implements IBaseRepository<TSource> {
-    public schemaDefaults: Object = { autopopulate: true, versionKey: false /* , virtuals: true, getters: true, defaults: true */, flattenMap: false };
+    public schemaDefaults: Object = { autopopulate: true, versionKey: false, virtuals: true, getters: true, defaults: true, flattenMap: false };
     public mongooseModel: Mongoose.Model<TSource, {}>;
     public mongoDbModel: Collection<TSource>;
     public mongooseConnection: Mongoose.Connection = dbConnection;
@@ -22,17 +23,11 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         schema.set("versionKey", false);
         this.checkVirtuals(schema);
         schema.plugin(mongooseAutopopulate);
-
-        // schema.plugin(mongooseLeanVirtuals);
-        // schema.plugin(mongooseLeanGetters);
-        // schema.plugin(mongooseLeanDefaults);
-
-        // if (schema instanceof Mongoose.Schema)
-        //  console.log("Schema associated: " + schema.methods);        
-
+        schema.plugin(mongooseLeanVirtuals);
+        schema.plugin(mongooseLeanGetters);
+        schema.plugin(mongooseLeanDefaults);
         schema.set('toJSON', this.schemaDefaults);
         schema.set('toObject', this.schemaDefaults);
-
         this.mongoDbModel = mongoDbConnection.collection<TSource>(collectionName);
         this.mongooseModel = dbConnection.model<TSource>(collectionName, schema, collectionName);
         this.mongooseQuery = new Mongoose.Query<TSource>();
@@ -42,12 +37,18 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         if (!schema.statics.hasOwnProperty("useVirtuals")) return;
         for (const key in schema.statics.useVirtuals) {
             const value: object = schema.statics.useVirtuals[key].value;
-            const fields: string[] = schema.statics.useVirtuals[key].fields || [];
             schema.virtual(key, value);
-            schema.path(key, { ref: key, autopopulate: { select: fields, maxDepth: 2 }, type: Mongoose.Types.ObjectId });
-
+            // const fields: string[] = schema.statics.useVirtuals[key].fields || [];
+            // schema.path(key, { ref: key, autopopulate: { select: fields, maxDepth: 3 }, type: Mongoose.Types.ObjectId });
             schema.pre("aggregate", function (next: Function) {
-                this.lookup(value).unwind(key);
+                const pipeLine: { from: string, localField: string, foreignField: string, as: string } = (({ from, localField, foreignField, as }) => ({ from, localField, foreignField, as }))(schema.statics.useVirtuals[key].value);
+                const unWind: boolean = schema.statics.useVirtuals[key].unWind || false;
+                // unWind ? this.lookup(pipeLine).unwind(key) : this.lookup(pipeLine);
+                if (unWind) {
+                    this.lookup(pipeLine).unwind(key);
+                } else {
+                    this.lookup(pipeLine);
+                }
                 next();
             });
         }
@@ -71,6 +72,9 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         return this.mongooseModel;
     }
 
+    async updateDocuments(conditions: PartialObject<TSource>, fieldsToUpdate: PartialObject<TSource>): Promise<Array<TSource>> {
+        return await this.mongooseModel.updateMany(conditions, fieldsToUpdate);
+    }
     async addItem(item: TSource): Promise<TSource> {
         try {
             return (await this.mongooseModel.create(item)).toObject();
@@ -106,14 +110,13 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         // return (await this.mongooseModel.findOne(filter)).toObject();
     }
 
-    async getDocuments(filter: Object): Promise<TSource[]> {
-        return await this.mongooseModel.find(filter).lean(this.schemaDefaults);
+    async getDocuments(filter: PartialObject<TSource>, projection?: Object | string | null, options?: Object): Promise<TSource[]> {
+        return await this.mongooseModel.find(filter, projection, options).lean(this.schemaDefaults);
     }
 
     async findById(id: string | ObjectId): Promise<TSource> {
         var _id = id instanceof ObjectId ? id : Mongoose.Types.ObjectId(id);
         return await this.mongooseModel.findById(_id).lean(this.schemaDefaults);
-        // return (await this.mongooseModel.findById(_id)).toObject(); //.lean(this.leanDefaults);
     }
 
     async bulkInsert(items: Array<TSource> | TSource): Promise<Array<TSource>> {
@@ -129,7 +132,7 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         }).lean(this.schemaDefaults);
     }
 
-    async aggregate(aggregatePipeline?: [Object]): Promise<Array<TSource>> {
-        return await this.mongooseModel.aggregate(aggregatePipeline).exec();
+    async aggregate(aggregatePipeline?: Array<Object>): Promise<Array<TSource>> {
+        return await this.mongooseModel.aggregate(aggregatePipeline).limit(5).exec();
     }
 }

@@ -11,7 +11,6 @@ const getDocuments = function (request: Request, response: Response) {
         FileTypeMasterId: request.body.FileTypeMasterId,
         FileNameWithoutExt: new RegExp(request.body.FileNameWithoutExt, 'i')
     };
-
     floKaptureService.FileMaster.getDocuments(filter).then((res) => {
         response.status(200).json(res);
     }).catch((error: Error) => {
@@ -19,4 +18,16 @@ const getDocuments = function (request: Request, response: Response) {
     });
 };
 
-export { getAll, getDocuments }
+const aggregateAll = async function (request: Request, response: Response) {
+    const aggregatePipeline = [{
+        $addFields: {
+            FullName: { $concat: ["$FirstName", " ", "$LastName"] }
+        }
+    }];
+    const allUsers = await floKaptureService.UserMaster.getAllDocuments();
+    console.log(allUsers);
+    const userMasters = await floKaptureService.UserMaster.aggregate(aggregatePipeline);
+    response.json(userMasters);
+};
+
+export { getAll, getDocuments, aggregateAll }

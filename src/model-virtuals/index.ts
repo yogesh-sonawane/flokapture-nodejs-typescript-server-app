@@ -4,8 +4,12 @@ const languageMasterVirtuals = {
         from: "LanguageMaster",
         localField: "LanguageId",
         foreignField: "_id",
-        as: "LanguageMaster"
+        as: "LanguageMaster",
+        ref: "LanguageMaster",
+        autopopulate: true,
+        justOne: true
     },
+    unWind: true,
     fields: ["LanguageId", "LanguageName"]
 };
 
@@ -15,8 +19,13 @@ const fileTypeMasterVirtuals = {
         from: "FileTypeMaster",
         localField: "FileTypeMasterId",
         foreignField: "_id",
-        as: "FileTypeMaster"
-    }
+        as: "FileTypeMaster",
+        ref: "FileTypeMaster",
+        autopopulate: true,
+        justOne: true
+    },
+    // fields: [""],
+    unWind: true
 };
 
 const workspaceMasterVirtuals = {
@@ -25,8 +34,12 @@ const workspaceMasterVirtuals = {
         from: "WorkspaceMaster",
         localField: "WorkspaceId",
         foreignField: "_id",
-        as: "WorkspaceMaster"
+        as: "WorkspaceMaster", 
+        ref: "WorkspaceMaster",
+        autopopulate: true,
+        justOne: true
     },
+    unWind: true,
     fields: { _id: 1, WorkspaceName: 1, WorkspaceDescription: 1 }
 };
 
@@ -36,8 +49,13 @@ const projectMasterVirtuals = {
         from: "ProjectMaster",
         localField: "ProjectId",
         foreignField: "_id",
-        as: "ProjectMaster"
-    }
+        as: "ProjectMaster",
+        ref: "ProjectMaster",
+        autopopulate: true,
+        justOne: true
+    },
+    // fields: [""],
+    unWind: true
 };
 
 const fileMasterVirtuals = {
@@ -46,10 +64,31 @@ const fileMasterVirtuals = {
         from: "FileMaster",
         localField: "FileId",
         foreignField: "_id",
-        as: "FileMaster"
+        as: "FileMaster", 
+        ref: "FileMaster",
+        autopopulate: true,
+        justOne: true
     },
+    // fields: [""],
+    unWind: true,
+    fields: ["_id", "FileId", "ProjectId", "FileTypeMasterId", "FileName", "FileNameWithoutExt", "WorkFlowStatus", "ProjectMaster", "FileTypeExtensionMaster"]
+};
+
+const referenceFileMasterVirtuals = {
+    path: "FileMaster",
+    value: {
+        from: "FileMaster",
+        localField: "ReferenceFileId",
+        foreignField: "_id",
+        as: "ReferenceFileMaster",
+        ref: "FileMaster",
+        autopopulate: true,
+        justOne: true
+    },    
+    unWind: true,
     fields: ["_id", "FileId", "FileName", "FileNameWithoutExt", "WorkFlowStatus", "ProjectMaster", "FileTypeExtensionMaster"]
 };
+
 
 const baseCommandMasterVirtuals = {
     path: "BaseCommandMaster",
@@ -57,15 +96,20 @@ const baseCommandMasterVirtuals = {
         from: "BaseCommandMaster",
         localField: "BaseCommandId",
         foreignField: "_id",
-        as: "BaseCommandMaster"
-    }
+        as: "BaseCommandMaster",
+        ref: "BaseCommandMaster",
+        autopopulate: true,
+        justOne: true
+    },
+    unWind: true,
 };
 
 export {
     languageMasterVirtuals,
     workspaceMasterVirtuals,
     projectMasterVirtuals,
-    fileTypeMasterVirtuals,    
+    fileTypeMasterVirtuals,
     fileMasterVirtuals,
-    baseCommandMasterVirtuals
+    baseCommandMasterVirtuals,
+    referenceFileMasterVirtuals
 };

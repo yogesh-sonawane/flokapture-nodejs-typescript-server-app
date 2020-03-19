@@ -37,7 +37,6 @@ class UniVerseBasicProcessHelpers {
                 reject({ message: "Error occurred while menu file processing" });
             });
     });
-
     protected prepareDataDictionary = function (row: any, project: ProjectMaster): UniVerseDataDictionary {
         const fieldNo: string = row["FIELD NO"] ? row["FIELD NO"] : "";
         var isValidNumber = /^[0-9]+(\.[0-9]+)?$/ig.test(fieldNo);
@@ -56,7 +55,6 @@ class UniVerseBasicProcessHelpers {
             ProjectId: project._id
         } as UniVerseDataDictionary;
     };
-
     public processUniVerseDataDictionary = async (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         const fastCsv: any = require("fast-csv");
         const extensionMaster: any = await floKaptureService.FileTypeMaster.getItem({
@@ -106,7 +104,6 @@ class UniVerseBasicProcessHelpers {
         }
         */
     });
-
     protected async processDescriptorFile(csvFile: FileMaster, delimiter: string, project: ProjectMaster): Promise<FileStatics> {
         const splitRegExp =
             new RegExp(`\\${delimiter}(?!(?<=(?:^|,)\\s*"(?:[^"]|""|\\\\")*,)(?:[^"]|""|\\\\")*"\\s*(?:,|$))`, "ig");
@@ -174,7 +171,6 @@ class UniVerseBasicProcessHelpers {
             return fileStatics;
         } finally { }
     };
-
     public processUniverseDescriptors = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const extensionMaster: FileTypeMaster = await floKaptureService.FileTypeMaster.getItem({
@@ -209,7 +205,6 @@ class UniVerseBasicProcessHelpers {
             reject({ message: "Error occurred while I-Descriptor files processing!", error });
         }
     });
-
     public processUniVerseFileTypes = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const baseCommandReferences: BaseCommandReferenceMaster[] = await floKaptureService.BaseCommandReferenceMaster.getDocuments({

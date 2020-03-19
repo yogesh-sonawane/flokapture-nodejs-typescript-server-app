@@ -25,7 +25,6 @@ class UniVerseUtilities {
             resolve(extractPath);
         });
     };
-
     static validateDirStructure = function (rootPath: string) {
         const dirNames = ["Programs", "Jcl", "Include", "Menu", "I-Descriptors", "DataDictionary"];
         if (!fs.existsSync(rootPath)) return false;
@@ -39,12 +38,10 @@ class UniVerseUtilities {
         }
         return exist;
     };
-
     static fileNameWithoutExtension = function (path: string) {
         var fileName = path.split('.').slice(0, -1).join('.');
         return fileName;
     };
-
     static fileExtensionOnly = function (path: string): string {
         if (typeof path === "undefined" || path === "" || path === null) return "";
         try {
@@ -56,7 +53,6 @@ class UniVerseUtilities {
             return ""
         }
     };
-
     static changeExtension = function (dirPath: string, ext: string) {
         var allFiles = fs.readdirSync(dirPath);
         allFiles.forEach(function (file) {
@@ -68,7 +64,6 @@ class UniVerseUtilities {
             fs.renameSync(oldPath, newPath);
         });
     };
-
     public getAllFilesFromPath = function (rootPath: string, files: string[]): string[] {
         files = files || [];
         if (!fs.existsSync(rootPath)) return [];
@@ -83,7 +78,6 @@ class UniVerseUtilities {
         }
         return files;
     };
-
     public replaceContentsForEscapeChar = function (filePath: string): string {
         var fileBuffer = fs.readFileSync(filePath).toString().split("\n");
         var lineArray = "";
@@ -103,7 +97,35 @@ class UniVerseUtilities {
         fs.writeFileSync(modifiedFilePath, lineArray);
         return modifiedFilePath;
     };
-
+    public processLocateStatements = function (fileLines: Array<string>): Array<string> {
+        if (fileLines.length <= 0) return fileLines;
+        let linePosition: number = -1;
+        let fileLinesArray: string[] = [];
+        let locateRegEx = new RegExp("^[\\s]+LOCATE\\s+|^LOCATE\\s+", "i");
+        for (const fileLine of fileLines) {
+            linePosition++;
+            if (!locateRegEx.test(fileLine)) {
+                fileLinesArray.push(fileLine);
+                continue;
+            }
+            if (fileLine.endsWith(" ELSE")) {
+                var modify = fileLine.replace("ELSE", "").trimRight();
+                var whiteSpaces = fileLine.search(/\S/) + 22;
+                fileLinesArray.push(modify);
+                let paddedLine = "IF NOT-SUCCESS THEN".padStart(whiteSpaces, " ");
+                fileLinesArray.push(paddedLine);
+                continue;
+            }
+            if (fileLine.endsWith("THEN")) {
+                var modify = fileLine.replace("THEN", "").trimRight();
+                var whiteSpaces = fileLine.search(/\S/) + 18;
+                fileLinesArray.push(modify);
+                let paddedLine = "IF SUCCESS THEN".padStart(whiteSpaces, " ");
+                fileLinesArray.push(paddedLine);
+            }
+        }
+        return fileLinesArray;
+    };
     public waitForMoment = (milliseconds: number): Promise<unknown> => new Promise((resolve) => {
         setTimeout(resolve, milliseconds);
     });

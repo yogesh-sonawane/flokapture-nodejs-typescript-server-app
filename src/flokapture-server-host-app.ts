@@ -53,7 +53,7 @@ Promise.resolve(mongoConnection()).then(() => {
         }
         console.log('=========================================================================');
         console.log(`Flokapture Server Host Application is up running on port: ${portNumber}`);
-        console.log(address);
+        console.log(JSON.stringify(address));
         console.log('=========================================================================');
     });
 }).catch((error) => {

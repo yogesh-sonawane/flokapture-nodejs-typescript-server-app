@@ -1,6 +1,6 @@
 import Mongoose from "mongoose";
-import { fileMasterVirtuals, baseCommandMasterVirtuals } from "../model-virtuals";
-import { FileMaster, BaseCommandMaster } from "./";
+import { fileMasterVirtuals, baseCommandMasterVirtuals, referenceFileMasterVirtuals } from "../model-virtuals";
+import { FileMaster, BaseCommandMaster, ReferenceFileMaster } from "./";
 
 const StatementReferenceMasterSchema: Mongoose.Schema<StatementReferenceMaster> = new Mongoose.Schema({
     StatementId: {
@@ -54,7 +54,7 @@ const StatementReferenceMasterSchema: Mongoose.Schema<StatementReferenceMaster> 
 
 StatementReferenceMasterSchema.statics.useVirtuals = {
     FileMaster: fileMasterVirtuals,
-    ReferenceFileMaster: fileMasterVirtuals,
+    ReferenceFileMaster: referenceFileMasterVirtuals,
     BaseCommandMaster: baseCommandMasterVirtuals,
 };
 
@@ -70,7 +70,7 @@ class StatementReferenceMaster extends Mongoose.Document {
     public AlternateName: string | null | "";
     public StatementComment: string | null | "";
     public FileMaster: FileMaster | null;
-    public ReferenceFileMaster: FileMaster | null;
+    public ReferenceFileMaster: ReferenceFileMaster | null;
     public BaseCommandMaster: BaseCommandMaster | null;
 }
 

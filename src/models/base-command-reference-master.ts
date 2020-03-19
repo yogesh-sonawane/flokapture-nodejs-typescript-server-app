@@ -111,7 +111,7 @@ class BaseCommandReferenceMaster extends Mongoose.Document {
     };
     public MethodOrParagraph: {
         Start: [string],
-        End: [string]
+        End: string
     };
     public BlockComment: {
         Start: string,

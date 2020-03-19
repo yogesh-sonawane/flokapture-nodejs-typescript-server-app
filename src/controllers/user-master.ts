@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Mongoose from "mongoose";
-const _ = require('lodash');
+const _: any = require('lodash');
 import { floKaptureService } from "../base-repositories/flokapture-db-service";
 
 var createUser = function (request: Request, response: Response) {

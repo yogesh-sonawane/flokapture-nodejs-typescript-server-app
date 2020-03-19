@@ -1,4 +1,5 @@
 import Mongoose from "mongoose";
+// import TSource from "./t-source-base";
 
 var LanguageMasterSchema: Mongoose.Schema<LanguageMaster> = new Mongoose.Schema({
     LanguageId: {
@@ -14,6 +15,9 @@ var LanguageMasterSchema: Mongoose.Schema<LanguageMaster> = new Mongoose.Schema(
     LanguageDescription: {
         required: false,
         type: String
+    },
+    CreatedOn: {
+        type: Date
     }
 });
 

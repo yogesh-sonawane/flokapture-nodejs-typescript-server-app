@@ -1,4 +1,7 @@
 import BaseRepository from "./BaseRepository";
+import "../extensions/array-extensions";
+import "../extensions/string-extensions";
+
 import {
     WorkspaceMasterSchema,
     ProjectMasterSchema,
@@ -9,6 +12,8 @@ import {
     UserMasterSchema,
     RoleMasterSchema,
     FileMasterSchema,
+    ReferenceFileMasterSchema,
+    ReferenceFileMaster,
     ProjectDirInfoSchema,
     UniVerseFileMenuSchema,
     UniVerseDataDictionarySchema,
@@ -44,7 +49,7 @@ const mongoClient: MongoClient = globalAny.mongoDbClient as MongoClient;
 
 class FloKaptureService {
     public mongoDbClient: MongoClient;
-    public mongooseConnection: Mongoose.Connection; // = dbConnection;
+    public mongooseConnection: Mongoose.Connection = dbConnection;
     public mongoDatabase: Db;
     constructor() {
         this.mongoDbClient = mongoClient;
@@ -67,8 +72,9 @@ class FloKaptureService {
     public UniVerseDescriptorMaster = new BaseRepository<UniVerseDescriptorMaster>({ collectionName: "UniVerseDescriptor", schema: UniVerseDescriptorSchema });
     public FileTypeMaster = new BaseRepository<FileTypeMaster>({ collectionName: "FileTypeMaster", schema: FileTypeMasterSchema });
     public BaseCommandMaster = new BaseRepository<BaseCommandMaster>({ collectionName: "BaseCommandMaster", schema: BaseCommandMasterSchema });
+    public ReferenceFileMaster = new BaseRepository<ReferenceFileMaster>({ collectionName: "ReferenceFileMaster", schema: ReferenceFileMasterSchema });
 }
 
 const floKaptureService: FloKaptureService = new FloKaptureService();
 
-export {floKaptureService, FloKaptureService};  
+export { floKaptureService, FloKaptureService };  

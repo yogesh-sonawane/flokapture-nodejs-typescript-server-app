@@ -1,9 +1,8 @@
 import fs from "fs";
-import { LineDetails } from "../../models";
-import { universeStringExtensions } from "../extensions/universe-string-extensions";
+import { LineDetails, FileStatics } from "../../models";
 import { StatementReferenceMaster, FileMaster, FileContentMaster, BaseCommandReferenceMaster, BaseCommandMaster } from "../../../models";
-import { universeArrayExtensions } from "../extensions/array-extensions";
-import {floKaptureService} from "../../../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../../../base-repositories/flokapture-db-service";
+import { universeStringExtensions, universeUtilities, universeArrayExtensions } from "../../../helpers";
 
 export class StatementReferenceMasterHelper {
     constructor() { };
@@ -19,7 +18,7 @@ export class StatementReferenceMasterHelper {
                 MethodName: baseCommandRef.BaseCommandId === 8 ? lineDetail.parsedLine : "",
                 BusinessName: baseCommandRef.BaseCommandId === 8 ? lineDetail.businessName : "",
                 ReferenceFileId: lineDetail.referenceFileId,
-                StatementId: null,
+                // StatementId: null,
                 AlternateName: null
             });
             return statementReferenceMaster as unknown as StatementReferenceMaster;
@@ -27,7 +26,6 @@ export class StatementReferenceMasterHelper {
             console.log(error);
         }
     };
-
     getMethodBusinessName = function (lineDetail: LineDetails, fileContents: string[], lineComment: string): LineDetails {
         const lineIndex = lineDetail.lineIndex;
         if (lineIndex <= 0) return lineDetail;
@@ -42,7 +40,6 @@ export class StatementReferenceMasterHelper {
         lineDetail.businessName = businessName;
         return lineDetail;
     };
-
     extractBaseCommandId = (statementToParse: string, baseCommandMaster: BaseCommandReferenceMaster, baseCommands: BaseCommandMaster[]): BaseCommandMaster | null => {
         if (universeStringExtensions.checkStatement(statementToParse)) return null;
 
@@ -54,7 +51,7 @@ export class StatementReferenceMasterHelper {
         const elseBlockPattern = baseCommandMaster.ElseBlock;
         const callIntPattern = baseCommandMaster.CallInternal.join("|");
         const methodStartPattern = baseCommandMaster.MethodOrParagraph.Start.join("|");
-        const methodEndPattern = baseCommandMaster.MethodOrParagraph.End.join("|");
+        const methodEndPattern = baseCommandMaster.MethodOrParagraph.End;
 
         var regExEndIf = new RegExp(endIfPattern, "ig");
         var regExLoopStart = new RegExp(loopStartPattern, "ig");
@@ -79,7 +76,6 @@ export class StatementReferenceMasterHelper {
 
         return baseCommand;
     };
-
     printFileStatics = function (lstBaseCommands: BaseCommandMaster[], fileMaster: any) {
         console.log("==========================================================");
         const ifCount = lstBaseCommands.filter(b => b.BaseCommandId === 1);
@@ -102,7 +98,6 @@ export class StatementReferenceMasterHelper {
         });
         console.log("==========================================================");
     };
-
     matchAll = function* (inputString: string, regExp: RegExp) {
         const flags = regExp.global ? regExp.flags : regExp.flags + "g";
         const regularExpression = new RegExp(regExp, flags);
@@ -111,7 +106,6 @@ export class StatementReferenceMasterHelper {
             yield match;
         }
     };
-
     extractUniVerseFileName = (lineDetail: LineDetails): string => {
         var callRegEx = new RegExp(/^CALL\s+(.*?(?=\())/, "ig");
         var phExePhantomRegEx = new RegExp(/^[EXECUTE\s+|PH\s+|PHANTOM\s+]+(.*)/, "ig");
@@ -144,16 +138,17 @@ export class StatementReferenceMasterHelper {
         var objectName = trySplit.slice(2).shift().trim();
         return objectName;
     };
-
     processUniVerseFile = (baseCommands: BaseCommandMaster[], baseCommandRef: BaseCommandReferenceMaster, fileMaster: FileMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
             if (!fs.existsSync(fileMaster.FilePath)) resolve();
             const lineBreakElement: string = baseCommandRef.LineBreakElement || "_";
             const fileContent: string = fs.readFileSync(fileMaster.FilePath).toString();
             var fileContentLines: string[] = fileContent.split("\n");
-            var lineDetails: LineDetails[] = universeArrayExtensions.removeCommentedAndBlankLines(fileContentLines, baseCommandRef.LineComment);
+            const fileLinesArray: string[] = universeUtilities.processLocateStatements(fileContentLines);
+            var lineDetails: LineDetails[] = universeArrayExtensions.removeCommentedAndBlankLines(fileLinesArray, baseCommandRef.LineComment);
             const contentLines: LineDetails[] = universeArrayExtensions.combineAllBrokenLines(lineDetails, lineBreakElement);
             const lstBaseCommands: BaseCommandMaster[] = [];
+            const lstStatementReferenceMaster: Array<StatementReferenceMaster> = [];
             for (const contentLine of contentLines) {
                 const baseCommandMaster: BaseCommandMaster = this.extractBaseCommandId(contentLine.parsedLine, baseCommandRef, baseCommands);
                 var lineDetail: LineDetails = universeStringExtensions.getCommentAndStatement(contentLine);
@@ -171,22 +166,37 @@ export class StatementReferenceMasterHelper {
                 const statementReferenceMaster: StatementReferenceMaster = this
                     .prepareStatementReferenceMaster(lineDetail, baseCommandMaster, fileMaster);
                 lstBaseCommands.push(baseCommandMaster);
+                lstStatementReferenceMaster.push(statementReferenceMaster);
                 await floKaptureService.StatementReferenceMaster.addItem(statementReferenceMaster);
             }
+            /*
+                for (const statementRef of lstStatementReferenceMaster) {
+                    await floKaptureService.StatementReferenceMaster.addItem(statementRef);
+                    await universeUtilities.waitForMoment(10);
+                }
+            */
+            // Print file statics... This is only for debugging purpose...
             this.printFileStatics(lstBaseCommands, fileMaster);
             // Insert data into file content master table...
-
+            let contentWithoutComments: string[] = [];
+            contentLines.forEach(c => contentWithoutComments.push(c.parsedLine));
             const fileContentMaster: FileContentMaster = {
-                FileContentId: null,
                 FileMaster: fileMaster._id,
-                ContentWithoutComments: contentLines.join("\n"),
+                ContentWithoutComments: contentWithoutComments.join("\n"),
                 FileContent: fileContent,
                 FileId: fileMaster._id
             } as FileContentMaster;
             await floKaptureService.FileContentMaster.addItem(fileContentMaster as FileContentMaster);
             // Update file status...
+            let fileStatics: FileStatics = {
+                exceptions: null,
+                lineCount: fileContentLines.length,
+                parsed: true,
+                processedLineCount: contentWithoutComments.length
+            };
             await floKaptureService.FileMaster.findByIdAndUpdate(fileMaster._id, {
-                Processed: true
+                Processed: true,
+                FileStatics: fileStatics
             });
             resolve({ fileMaster });
         } catch (error) {
