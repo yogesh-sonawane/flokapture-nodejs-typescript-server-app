@@ -18,7 +18,6 @@ export class StatementReferenceMasterHelper {
                 MethodName: baseCommandRef.BaseCommandId === 8 ? lineDetail.parsedLine : "",
                 BusinessName: baseCommandRef.BaseCommandId === 8 ? lineDetail.businessName : "",
                 ReferenceFileId: lineDetail.referenceFileId,
-                // StatementId: null,
                 AlternateName: null
             });
             return statementReferenceMaster as unknown as StatementReferenceMaster;
@@ -144,12 +143,13 @@ export class StatementReferenceMasterHelper {
             const lineBreakElement: string = baseCommandRef.LineBreakElement || "_";
             const fileContent: string = fs.readFileSync(fileMaster.FilePath).toString();
             var fileContentLines: string[] = fileContent.split("\n");
-            const fileLinesArray: string[] = universeUtilities.processLocateStatements(fileContentLines);
-            var lineDetails: LineDetails[] = universeArrayExtensions.removeCommentedAndBlankLines(fileLinesArray, baseCommandRef.LineComment);
-            const contentLines: LineDetails[] = universeArrayExtensions.combineAllBrokenLines(lineDetails, lineBreakElement);
+            var lineDetails: Array<LineDetails> = universeArrayExtensions.removeCommentedAndBlankLines(fileContentLines, baseCommandRef.LineComment);
+            const contentLines: Array<LineDetails> = universeArrayExtensions.combineAllBrokenLines(lineDetails, lineBreakElement);
+            const fileLinesArray: Array<LineDetails> = universeUtilities.processLocateStatements(contentLines);
+            let fileLineDetails: Array<LineDetails> = universeUtilities.processCaseStatements(fileLinesArray);
             const lstBaseCommands: BaseCommandMaster[] = [];
             const lstStatementReferenceMaster: Array<StatementReferenceMaster> = [];
-            for (const contentLine of contentLines) {
+            for (const contentLine of fileLineDetails) {
                 const baseCommandMaster: BaseCommandMaster = this.extractBaseCommandId(contentLine.parsedLine, baseCommandRef, baseCommands);
                 var lineDetail: LineDetails = universeStringExtensions.getCommentAndStatement(contentLine);
                 const methodRegExp = new RegExp(baseCommandRef.MethodOrParagraph.Start.join("|"), "ig");
@@ -169,17 +169,26 @@ export class StatementReferenceMasterHelper {
                 lstStatementReferenceMaster.push(statementReferenceMaster);
                 await floKaptureService.StatementReferenceMaster.addItem(statementReferenceMaster);
             }
-            /*
-                for (const statementRef of lstStatementReferenceMaster) {
-                    await floKaptureService.StatementReferenceMaster.addItem(statementRef);
-                    await universeUtilities.waitForMoment(10);
-                }
-            */
             // Print file statics... This is only for debugging purpose...
             this.printFileStatics(lstBaseCommands, fileMaster);
-            // Insert data into file content master table...
             let contentWithoutComments: string[] = [];
-            contentLines.forEach(c => contentWithoutComments.push(c.parsedLine));
+            fileLineDetails.forEach(c => contentWithoutComments.push(c.parsedLine));
+            let fileStatics: FileStatics = {
+                exceptions: null,
+                lineCount: fileContentLines.length,
+                parsed: true,
+                processedLineCount: contentWithoutComments.length
+            };
+            // Update file status...
+            await floKaptureService.FileMaster.findByIdAndUpdate(fileMaster._id, {
+                Processed: true,
+                FileStatics: fileStatics
+            });
+            resolve({ fileMaster });
+
+            // Insert data into file content master table...
+            // This part is now added to separate step...
+            /*
             const fileContentMaster: FileContentMaster = {
                 FileMaster: fileMaster._id,
                 ContentWithoutComments: contentWithoutComments.join("\n"),
@@ -187,21 +196,33 @@ export class StatementReferenceMasterHelper {
                 FileId: fileMaster._id
             } as FileContentMaster;
             await floKaptureService.FileContentMaster.addItem(fileContentMaster as FileContentMaster);
-            // Update file status...
-            let fileStatics: FileStatics = {
-                exceptions: null,
-                lineCount: fileContentLines.length,
-                parsed: true,
-                processedLineCount: contentWithoutComments.length
-            };
-            await floKaptureService.FileMaster.findByIdAndUpdate(fileMaster._id, {
-                Processed: true,
-                FileStatics: fileStatics
-            });
-            resolve({ fileMaster });
+            */
         } catch (error) {
             reject({ error });
         } finally { }
+    });
+    processFileContents = (fileMaster: FileMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
+        {
+            try {
+                if (!fs.existsSync(fileMaster.FilePath)) resolve();
+                const fileContent: string = fs.readFileSync(fileMaster.FilePath).toString();
+                let parsedComments = await floKaptureService.StatementReferenceMaster.getModel().find({
+                    FileId: fileMaster._id,
+                }, "ResolvedStatement").exec();
+                let contentWithoutComments: string[] = [];
+                parsedComments.forEach((s) => { contentWithoutComments.push(s.ResolvedStatement) });
+                const fileContentMaster: FileContentMaster = {
+                    FileMaster: fileMaster._id,
+                    ContentWithoutComments: contentWithoutComments.join("\n"),
+                    FileContent: fileContent,
+                    FileId: fileMaster._id
+                } as FileContentMaster;
+                await floKaptureService.FileContentMaster.addItem(fileContentMaster as FileContentMaster);
+                resolve({ fileMaster });
+            } catch (error) {
+                reject({ error });
+            } finally { }
+        };
     });
 }
 

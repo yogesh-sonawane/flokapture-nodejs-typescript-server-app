@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { floKaptureService } from "../base-repositories/flokapture-db-service";
-import { universeMainProcessUtils, commonHelper } from "../helpers";
+import { universeMainProcessUtils, commonHelper, UniVerseUtilities, universeUtilities } from "../helpers";
 import { ProjectMaster } from "../models";
 
 const startProcessing = async function (request: Request, response: Response) {
@@ -16,7 +16,30 @@ const startProcessing = async function (request: Request, response: Response) {
         ProcessingStatus: 2
     });
 
-    var processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ChangeFileExtensions");
+    var processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ConfirmDirectoryStructure");
+    if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
+        var startedOn = new Date();
+        try {
+            let isValid: boolean = UniVerseUtilities.validateDirStructure(projectMaster.ExtractedPath);
+            if (!isValid) return response.status(500).send({
+                message: "Project directory structure is not valid. Please make sure you have Menu, I-Descriptors and DataDictionary folders in it."
+            }).end();
+            var completedOn = new Date();
+            var stepDoc = await floKaptureService.ProjectProcessingSteps.findByIdAndUpdate(processStep._id, {
+                StartedOn: startedOn, CompletedOn: completedOn
+            });
+            console.log(stepDoc);
+        } catch (error) {
+            return response.status(500).send({
+                message: "Error occurred while changing the extensions of files",
+                error
+            }).end();
+        }
+        finally {
+            console.info("This message is from Change Extensions step");
+        }
+    }
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ChangeFileExtensions");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         var startedOn = new Date();
         try {
@@ -27,7 +50,7 @@ const startProcessing = async function (request: Request, response: Response) {
             });
             console.log(stepDoc);
         } catch (error) {
-            response.status(500).send({
+            return response.status(500).send({
                 message: "Error occurred while changing the extensions of files",
                 error
             }).end();
@@ -46,7 +69,7 @@ const startProcessing = async function (request: Request, response: Response) {
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
-            response.status(500).send({
+            return response.status(500).send({
                 message: "Error occurred while extracting file details information",
                 error
             }).end();
@@ -65,7 +88,7 @@ const startProcessing = async function (request: Request, response: Response) {
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
             console.log(stepDoc);
         } catch (error) {
-            response.status(500).send({
+            return response.status(500).send({
                 message: "Error occurred while processing menu file",
                 error
             }).end();
@@ -112,11 +135,53 @@ const startProcessing = async function (request: Request, response: Response) {
             console.info("This message is from I-Descriptor files step");
         }
     }
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessUniversePrograms");
+    if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
+        try {
+            var startedOn = new Date();
+            await universeMainProcessUtils.processUniVerseFilesStep("Programs", ".pgm", projectMaster);
+            var completedOn = new Date();
+            var stepDoc = await floKaptureService.ProjectProcessingSteps
+                .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
+            console.log(stepDoc);
+        } catch (error) {
+            return response.status(500).send({
+                message: "Error occurred while processing Universe files",
+                error
+            }).end();
+        }
+        finally {
+            console.info("This message is from processing Universe files step");
+        }
+    }
     processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessUniVerseJcls");
     if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
         try {
             var startedOn = new Date();
-            await universeMainProcessUtils.processUniVerseFilesStep(projectMaster);
+            await universeMainProcessUtils.processUniVerseFilesStep("Jcl", ".jcl", projectMaster);
+            var completedOn = new Date();
+            var stepDoc = await floKaptureService.ProjectProcessingSteps
+                .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
+            console.log(stepDoc);
+        } catch (error) {
+            return response.status(500).send({
+                message: "Error occurred while processing Universe files",
+                error
+            }).end();
+        }
+        finally {
+            console.info("This message is from processing Universe files step");
+        }
+    }
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessUniVerseSubRoutinesAndIncludes");
+    if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
+        try {
+            var startedOn = new Date();
+            await universeMainProcessUtils.processUniVerseFilesStep("Includes", ".icd", projectMaster);
+            console.log("UniVerse Basic Include files are processed!.");
+            await universeUtilities.waitForMoment(1000);
+            await universeMainProcessUtils.processUniVerseFilesStep("SubRoutines", ".sbr", projectMaster);
+            console.log("UniVerse Basic SubRoutine files are processed!.");
             var completedOn = new Date();
             var stepDoc = await floKaptureService.ProjectProcessingSteps
                 .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
@@ -132,6 +197,25 @@ const startProcessing = async function (request: Request, response: Response) {
         }
     }
 
+    processStep = await commonHelper.fetchProcessStep(projectMaster._id, "ProcessForFileContents");
+    if (processStep && !processStep.StartedOn && !processStep.CompletedOn) {
+        try {
+            var startedOn = new Date();
+            await universeMainProcessUtils.processFileContentsStep(projectMaster);
+            var completedOn = new Date();
+            var stepDoc = await floKaptureService.ProjectProcessingSteps
+                .findByIdAndUpdate(processStep._id, { StartedOn: startedOn, CompletedOn: completedOn });
+            console.log(stepDoc);
+        } catch (error) {
+            return response.status(500).send({
+                message: "Error occurred while processing UniVerse File Contents",
+                error
+            }).end();
+        }
+        finally {
+            console.info("This message is from processing UniVerse File Contents step");
+        }
+    }
     floKaptureService.ProjectMaster.findByIdAndUpdate(projectMaster._id, {
         ProcessingStatus: 1
     }).then((updatedProject) => {

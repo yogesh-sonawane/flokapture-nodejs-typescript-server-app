@@ -1,7 +1,7 @@
 import Mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
-import {floKaptureService} from "../../../base-repositories/flokapture-db-service";
+import { floKaptureService } from "../../../base-repositories/flokapture-db-service";
 import { commonHelper, universeUtilities, universeBasicProcessHelpers } from "../../index";
 import { FileMaster, ProjectMaster } from "../../../models";
 
@@ -85,9 +85,20 @@ export default class UniVerseMainProcessUtils {
             console.log("I-Descriptor files processing step completed successfully!.");
         }
     });
-    public processUniVerseFilesStep = (project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
+    public processUniVerseFilesStep = (type: string, extension: string, project: ProjectMaster) => new Promise(async (resolve: Function, reject: Function) => {
         try {
-            const res: any = await universeBasicProcessHelpers.processUniVerseFileTypes(project);
+            const res: any = await universeBasicProcessHelpers.processUniVerseFileTypes(type, extension, project);
+            resolve(res);
+        } catch (error) {
+            reject({ message: "Error occurred while UniVerse file types processing!", error });
+        }
+        finally {
+            console.log("UniVerse file types processing step completed successfully!.");
+        }
+    });
+    public processFileContentsStep = (project: ProjectMaster): Promise<any> => new Promise(async(resolve: Function, reject: Function) => {
+        try {
+            const res: any = await universeBasicProcessHelpers.processFileContentMaster(project);
             resolve(res);
         } catch (error) {
             reject({ message: "Error occurred while UniVerse file types processing!", error });

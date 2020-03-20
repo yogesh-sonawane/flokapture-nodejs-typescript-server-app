@@ -205,7 +205,7 @@ class UniVerseBasicProcessHelpers {
             reject({ message: "Error occurred while I-Descriptor files processing!", error });
         }
     });
-    public processUniVerseFileTypes = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
+    public processUniVerseFileTypes = (type: string, extension: string, project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
         try {
             const baseCommandReferences: BaseCommandReferenceMaster[] = await floKaptureService.BaseCommandReferenceMaster.getDocuments({
                 LanguageId: project.LanguageId
@@ -216,9 +216,10 @@ class UniVerseBasicProcessHelpers {
                     ProjectId: project._id,
                     FileTypeMasterId: baseCommandRef.FileTypeMasterId,
                     Processed: false
-                });
+                } as Partial<FileMaster>);
 
                 for (const fileMaster of fileMasters) {
+                    if (!(fileMaster.FileTypeMaster.FileTypeName === type && fileMaster.FileTypeMaster.FileTypeExtension === extension)) continue;
                     await statementReferenceMasterHelper.processUniVerseFile(baseCommands, baseCommandRef, fileMaster);
                     await universeUtilities.waitForMoment(200);
                 }
@@ -226,6 +227,30 @@ class UniVerseBasicProcessHelpers {
             resolve({ message: "All files/objects are processed.", project });
         } catch (error) {
             reject({ message: "Error occurred while processing files.", error });
+        }
+    });
+    public processFileContentMaster = (project: ProjectMaster): Promise<any> => new Promise(async (resolve: Function, reject: Function) => {
+        try {
+            const baseCommandReferences: BaseCommandReferenceMaster[] = await floKaptureService.BaseCommandReferenceMaster.getDocuments({
+                LanguageId: project.LanguageId
+            });
+            const baseCommands = await floKaptureService.BaseCommandMaster.getAllDocuments();
+            for (const baseCommandRef of baseCommandReferences) {
+                const fileMasters = await floKaptureService.FileMaster.getDocuments({
+                    ProjectId: project._id,
+                    FileTypeMasterId: baseCommandRef.FileTypeMasterId,
+                    Processed: true
+                });
+
+                for (const fileMaster of fileMasters) {
+                    if (fileMaster.FileTypeMaster.FileTypeName === "Menu" || fileMaster.FileTypeMaster.FileTypeName === "Entity" || fileMaster.FileTypeMaster.FileTypeName === "I-Descriptor" || /^.txt$|^.csv$/.test(fileMaster.FileTypeMaster.FileTypeExtension)) continue;
+                    await statementReferenceMasterHelper.processFileContents(fileMaster);
+                    await universeUtilities.waitForMoment(100);
+                }
+            }
+            resolve({ message: "File content master processing step completed successfully.", project });
+        } catch (error) {
+            reject({ message: "Error occurred while processing file content master step.", error });
         }
     });
 }

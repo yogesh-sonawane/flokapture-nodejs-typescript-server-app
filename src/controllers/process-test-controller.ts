@@ -8,7 +8,7 @@ const test = async function (request: Request, response: Response) {
     const projectMaster = await floKaptureService.ProjectMaster.findById(id);
     if (!projectMaster) response.end();
     try {
-        var res = await universeMainProcessUtils.processUniVerseFilesStep(projectMaster);
+        var res = await universeMainProcessUtils.processUniVerseFilesStep("Jcl", ".jcl", projectMaster);
         response.status(200).json(res);
     } catch (error) {
         response.status(500).json(error);

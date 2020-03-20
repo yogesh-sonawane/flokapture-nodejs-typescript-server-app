@@ -17,9 +17,17 @@ const getDocuments = function (request: Request, response: Response) {
     });
 };
 const updateDocuments = function (request: Request, response: Response) {
-    const filter: PartialObject<FileMaster> = {
+    const filter: any = {
         ProjectId: Mongoose.Types.ObjectId("5e70c7160e2e7b7ef06859ca"),
-        FileTypeMasterId: Mongoose.Types.ObjectId("5e05db0b9d1f1a7ff45e2986"),
+        // FileTypeMasterId: Mongoose.Types.ObjectId("5e05dad99d1f1a7ff45e2984"),
+        FileTypeMasterId: {
+            $in: [
+                Mongoose.Types.ObjectId("5e05db0b9d1f1a7ff45e2986"),
+                Mongoose.Types.ObjectId("5e05d6bb9d1f1a7ff45e2982"),
+                Mongoose.Types.ObjectId("5e05dad99d1f1a7ff45e2984"),
+                Mongoose.Types.ObjectId("5e05db0b9d1f1a7ff45e2986")
+            ]
+        },
         Processed: true
     };
     const fieldsToUpdate: PartialObject<FileMaster> = {
@@ -77,9 +85,9 @@ const decisionMatrix = function (request: Request, response: Response) {
         ifBlockDictionary.shift();
         finalLstTreeView.forEach(e => { e.IndentLevel = 0; });
         finalLstTreeView = universeArrayExtensions.setIndentationLevel(finalLstTreeView);
-        universeArrayExtensions.prepareDecisionMatrix(finalLstTreeView, ifBlockDictionary);
+        let decisionHtml: string = universeArrayExtensions.prepareDecisionMatrix(finalLstTreeView, ifBlockDictionary);
 
-        response.status(200).json(finalLstTreeView).end();
+        response.status(200).json({ decisionHtml, treeView: lstTreeView }).end();
     }).catch(err => {
         response.status(500).json(err).end();
     });

@@ -1,6 +1,8 @@
 var UnZipper: any = require("unzipper");
 import fs from "fs";
 import path from "path";
+import { LineDetails } from "../../models";
+import { universeStringExtensions } from "../../";
 
 class UniVerseUtilities {
     public extractProjectZip = function (projectMaster: any) {
@@ -26,13 +28,13 @@ class UniVerseUtilities {
         });
     };
     static validateDirStructure = function (rootPath: string) {
-        const dirNames = ["Programs", "Jcl", "Include", "Menu", "I-Descriptors", "DataDictionary"];
+        const dirNames = ["Menu", "I-Descriptors", "DataDictionary"];
         if (!fs.existsSync(rootPath)) return false;
 
         var allDirectories = fs.readdirSync(rootPath);
         var exist = false;
-        for (const dir of allDirectories) {
-            exist = dirNames.includes(dir);
+        for (const dir of dirNames) {
+            exist = allDirectories.includes(dir);
             if (!exist) break;
             exist = true;
         }
@@ -97,32 +99,86 @@ class UniVerseUtilities {
         fs.writeFileSync(modifiedFilePath, lineArray);
         return modifiedFilePath;
     };
-    public processLocateStatements = function (fileLines: Array<string>): Array<string> {
+    public processLocateStatements = function (fileLines: Array<LineDetails>): Array<LineDetails> {
         if (fileLines.length <= 0) return fileLines;
-        let linePosition: number = -1;
-        let fileLinesArray: string[] = [];
+        // let linePosition: number = -1;
+        let fileLinesArray: Array<LineDetails> = [];
         let locateRegEx = new RegExp("^[\\s]+LOCATE\\s+|^LOCATE\\s+", "i");
         for (const fileLine of fileLines) {
-            linePosition++;
-            if (!locateRegEx.test(fileLine)) {
+            // linePosition++;
+            if (!locateRegEx.test(fileLine.parsedLine)) {
                 fileLinesArray.push(fileLine);
                 continue;
             }
-            if (fileLine.endsWith(" ELSE")) {
-                var modify = fileLine.replace("ELSE", "").trimRight();
-                var whiteSpaces = fileLine.search(/\S/) + 22;
-                fileLinesArray.push(modify);
+            if (fileLine.parsedLine.endsWith(" ELSE")) {
+                var modify = fileLine.parsedLine.replace("ELSE", "").trimRight();
+                var whiteSpaces = fileLine.parsedLine.search(/\S/) + 22;
+                fileLinesArray.push({ lineIndex: fileLine.lineIndex, originalLine: fileLine.originalLine, parsedLine: modify, businessName: fileLine.businessName, referenceFileId: fileLine.referenceFileId, statementComment: fileLine.statementComment });
                 let paddedLine = "IF NOT-SUCCESS THEN".padStart(whiteSpaces, " ");
-                fileLinesArray.push(paddedLine);
+                fileLinesArray.push({ lineIndex: fileLine.lineIndex, originalLine: fileLine.originalLine, parsedLine: paddedLine, businessName: fileLine.businessName, referenceFileId: fileLine.referenceFileId, statementComment: fileLine.statementComment });
                 continue;
             }
-            if (fileLine.endsWith("THEN")) {
-                var modify = fileLine.replace("THEN", "").trimRight();
-                var whiteSpaces = fileLine.search(/\S/) + 18;
-                fileLinesArray.push(modify);
+            if (fileLine.parsedLine.endsWith("THEN")) {
+                var modify = fileLine.parsedLine.replace("THEN", "").trimRight();
+                var whiteSpaces = fileLine.parsedLine.search(/\S/) + 18;
+                fileLinesArray.push({ lineIndex: fileLine.lineIndex, originalLine: fileLine.originalLine, parsedLine: modify, businessName: fileLine.businessName, referenceFileId: fileLine.referenceFileId, statementComment: fileLine.statementComment });
                 let paddedLine = "IF SUCCESS THEN".padStart(whiteSpaces, " ");
-                fileLinesArray.push(paddedLine);
+                fileLinesArray.push({ lineIndex: fileLine.lineIndex, originalLine: fileLine.originalLine, parsedLine: paddedLine, businessName: fileLine.businessName, referenceFileId: fileLine.referenceFileId, statementComment: fileLine.statementComment });
             }
+        }
+        return fileLinesArray;
+    };
+    public processCaseStatements = function (lineDetails: Array<LineDetails>): Array<LineDetails> {
+        let fileLinesArray: Array<LineDetails> = [];
+        let beginCaseRegExp = new RegExp("^\\s+BEGIN CASE|^BEGIN CASE$", "igm");
+        let endCaseRegExp = new RegExp("^\\s+END CASE|^END CASE$", "igm");
+        let caseOtherwiseRegExp = new RegExp("^\\s+CASE OTHERWISE|^CASE OTHERWISE$", "igm");
+        // let caseStatementRegExp = new RegExp("^\\s+CASE\\s+|^CASE\\s+", "igm");
+        let linePosition = -1;
+        let caseCounter = 0;
+        for (const lineDetail of lineDetails) {
+            if (beginCaseRegExp.test(lineDetail.parsedLine)) {
+                caseCounter = 0;
+                continue;
+            }
+            linePosition++;
+            if (endCaseRegExp.test(lineDetail.parsedLine)) {
+                caseCounter = 0;
+                fileLinesArray.push({
+                    lineIndex: lineDetail.lineIndex, originalLine: "END", parsedLine: "END"
+                });
+                continue;
+            }
+            if (caseOtherwiseRegExp.test(lineDetail.parsedLine)) {
+                fileLinesArray.push({
+                    lineIndex: lineDetail.lineIndex, originalLine: "END ELSE", parsedLine: "END ELSE", statementComment: lineDetail.statementComment
+                });
+                continue;
+            }
+            if (/^\s+CASE\s+|^CASE\s+/igm.test(lineDetail.parsedLine) && caseCounter === 0) {
+                let ld: LineDetails = universeStringExtensions.getCommentAndStatement(lineDetail);
+                let statement = ld.parsedLine.replace(/case\s+/i, "IF ") + " THEN";
+                fileLinesArray.push({
+                    lineIndex: lineDetail.lineIndex, originalLine: lineDetail.originalLine, parsedLine: statement, businessName: ld.businessName, referenceFileId: ld.referenceFileId, statementComment: ld.statementComment
+                });
+                caseCounter++;
+                continue;
+            }
+            if (/^\s+CASE\s+|^CASE\s+/igm.test(lineDetail.parsedLine) && caseCounter >= 1) {
+                let ld: LineDetails = universeStringExtensions.getCommentAndStatement(lineDetail);
+                let statement = ld.parsedLine.replace(/case\s+/i, "IF ") + " THEN";
+                fileLinesArray.push({
+                    lineIndex: linePosition, originalLine: "END", parsedLine: "END"
+                });
+                fileLinesArray.push({
+                    lineIndex: lineDetail.lineIndex, originalLine: lineDetail.originalLine, parsedLine: statement, businessName: ld.businessName, referenceFileId: ld.referenceFileId, statementComment: ld.statementComment
+                });
+                caseCounter++;
+                continue;
+            }
+            fileLinesArray.push({
+                lineIndex: lineDetail.lineIndex, originalLine: lineDetail.originalLine, parsedLine: lineDetail.parsedLine, businessName: lineDetail.businessName, referenceFileId: lineDetail.referenceFileId, statementComment: lineDetail.statementComment
+            });
         }
         return fileLinesArray;
     };

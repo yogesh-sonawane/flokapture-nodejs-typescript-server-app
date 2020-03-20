@@ -1,5 +1,9 @@
 import { LineDetails, TreeView } from "../../models";
 export default class UniverseArrayExtensions extends Array {
+    public _globalId: number;
+    constructor() {
+        super(); this._globalId = 1;
+    }
     removeCommentedAndBlankLines = function (inputArray: string[], commentChar: string): LineDetails[] {
         var lines = inputArray || [];
         var lineDetails = Array<LineDetails>();
@@ -236,7 +240,7 @@ export default class UniverseArrayExtensions extends Array {
             return table;
         }
     };
-    prepareDecisionMatrix = function (lstTreeView: Array<TreeView>, ifBlockDictionary: [{ treeView: TreeView, decisions: Array<string> }]) {
+    prepareDecisionMatrix = function (lstTreeView: Array<TreeView>, ifBlockDictionary: [{ treeView: TreeView, decisions: Array<string> }]): string {
         let columnCount: number = lstTreeView.filter((value) => {
             return value.StatementReferenceMaster.BaseCommandMaster &&
                 (value.StatementReferenceMaster.BaseCommandMaster.BaseCommandId === 1
@@ -253,8 +257,8 @@ export default class UniverseArrayExtensions extends Array {
         }).length;
 
         let actionStartAt: number = conditionsCount + 1;
-        let totalRows: number = (conditionsCount + actionsCount) + 10;
-        let matrixTable: Array<any> = [];
+        let totalRows: number = (conditionsCount + actionsCount) + 15;
+        let matrixTable: Array<Array<string>> = [];
         for (let rows = 0; rows <= totalRows; rows++) {
             let emptyElement: any[] = [];
             for (let cnt = 0; cnt <= columnCount; cnt++) {
@@ -304,7 +308,72 @@ export default class UniverseArrayExtensions extends Array {
             }
             break;
         }
-        console.log(matrixTable);
+        let decisionHtml: string = this.prepareDecisionTable(matrixTable);
+        // console.log(decisionHtml);
+        return decisionHtml;
+    };
+    prepareDecisionTable = function (matrixTable: Array<Array<string>>): String {
+        let decisionHtml: string = "";
+        decisionHtml = decisionHtml.concat("<table class='table table-bordered table-striped users' style='border: none; width: 100%;'>");
+        let rowCount: number = -1;
+
+        for (const matrixRow of matrixTable) {
+            rowCount++;
+            if (matrixRow.every(c => c === "")) continue;
+            decisionHtml = decisionHtml.concat("\n", "<tr>");
+            let column: number = -1;
+            let cellFont: string = "";
+            if (rowCount === 0) cellFont = "background-color: black; color: white; width: 20%;";
+            var cellTitle: string = matrixTable[rowCount][1];
+            let colSpan: number = matrixTable.length;
+            for (const cellValue of matrixRow) {
+                column++;
+                // var cellValue: string = matrixTable[rowCount][column];
+                if (cellValue == "Actions:")
+                    cellFont = "background-color: black; color: white;";
+                if (rowCount == 0 && cellValue !== "Conditions:")
+                    cellFont = "background-color: black; color: white; width: 3%;"; // width: 3%;    
+                let cellString: string = this.prepareCell(cellTitle, cellValue, colSpan, cellFont);
+                decisionHtml = decisionHtml.concat(cellString);
+                if (cellValue == "Actions:") break;
+            }
+            decisionHtml = decisionHtml.concat("</tr>");
+        }
+        decisionHtml = decisionHtml.concat("\n", "</table>");
+        return decisionHtml;
+    };
+    prepareCell = function (cellTitle: string, cellValue: string, colspan: number, cellFont: string): string {
+        let cellString: string;
+        if (typeof cellTitle !== "undefined" || cellTitle !== "")
+            cellTitle = cellTitle.replace("'", "&apos;").replace(">", "&gt;").replace("<", "&lt;");
+        if (typeof cellValue !== "undefined" || cellValue !== "")
+            cellValue = cellValue.replace("'", "&apos;").replace(">", "&gt;").replace("<", "&lt;");
+        // let paddingStyle: string = ";padding: 8px 0px 0px 6px;";
+        let paddingStyle: string = "";
+        switch (cellValue) {
+            case "T":
+                cellString = "<td title='" + cellTitle + "' style=' " +
+                    "" + cellFont + paddingStyle + "; background-color: #8fbc8b; color: white;'>" + cellValue + "</td>";
+                break;
+            case "F":
+                cellString = "<td title='" + cellTitle + "' style=' " +
+                    "" + cellFont + paddingStyle + "; background-color: #ed7d31; color: white;'>" + cellValue + "</td>";
+                break;
+            case "X":
+                cellString = "<td title='" + cellTitle + "' style=' " +
+                    "" + cellFont + paddingStyle + "; background-color: #2d7b26; color: white;'>" + cellValue + "</td>";
+                break;
+            case "Actions:":
+                cellString = "<td colspan='" + colspan + "' style='" + cellFont + paddingStyle + ";' >" + cellValue + "</td>";
+                break;
+            default:
+                cellString = "<td title='" + cellTitle + "' for='" + this._globalId + "' style='" +
+                    cellFont + paddingStyle + "'>" + cellValue + " <em class='cellHelp' id='" + this._globalId +
+                    "' title='" + cellTitle + "'></em></td> ";
+                break;
+        }
+        this._globalId++;
+        return cellString;
     };
 };
 

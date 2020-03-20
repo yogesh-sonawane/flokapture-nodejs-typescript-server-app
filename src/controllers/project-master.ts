@@ -86,7 +86,7 @@ const universeProcessingSteps = [{
     StepDesc: "Process for Subroutines and Includes (.sbr, .icd) files",
     CanReprocess: false
 }, {
-    StepName: "ProcessForFileContent",
+    StepName: "ProcessForFileContents",
     StepDesc: "Process for file contents like removing empty lines, commented lines etc...",
     CanReprocess: true,
     TableName: "FileContentMaster"
