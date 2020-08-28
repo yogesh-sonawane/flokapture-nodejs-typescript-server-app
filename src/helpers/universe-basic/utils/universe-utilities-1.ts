@@ -62,7 +62,7 @@ class UniVerseUtilities {
             var basename = path.basename(oldPath);
             if (!(basename.lastIndexOf(ext) === -1)) return;
             var newPath = path.join(dirPath, file).concat(ext);
-            console.log(newPath);
+            // console.log(newPath);
             fs.renameSync(oldPath, newPath);
         });
     };

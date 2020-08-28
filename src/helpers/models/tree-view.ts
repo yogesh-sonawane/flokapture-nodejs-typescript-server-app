@@ -29,7 +29,9 @@ export default class TreeView {
     public prepareTreeViewNode = function (graphId: string, parentId: string, treeNodeId: number, statementId: string | ObjectId, pseudoCode: boolean, statementReference: StatementReferenceMaster) {
         var gName = pseudoCode
             ? typeof statementReference.AlternateName !== "undefined"
-                ? statementReference.AlternateName : statementReference.OriginalStatement : statementReference.OriginalStatement;
+                ? statementReference.AlternateName 
+                : statementReference.OriginalStatement 
+                : statementReference.OriginalStatement;
         var treeItem: TreeView = {
             GraphId: graphId,
             GraphName: gName,
