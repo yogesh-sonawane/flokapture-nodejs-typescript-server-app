@@ -5,7 +5,6 @@ const mongooseLeanDefaults: any = require('mongoose-lean-defaults');
 const mongooseAutopopulate: any = require('mongoose-autopopulate');
 import IBaseRepository from "./IBaseRepository";
 import Mongoose, { DocumentQuery } from "mongoose";
-import { isArray } from "util";
 import { Db, Collection, ObjectId } from "mongodb";
 import { PartialObject } from "lodash";
 // import { TSource } from "../models";
@@ -33,14 +32,14 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
         this.mongooseQuery = new Mongoose.Query<TSource>();
     }
 
-    private checkVirtuals = function (schema: Mongoose.Schema) {
+    private checkVirtuals = function (schema: Mongoose.Schema<TSource>)  {
         if (!schema.statics.hasOwnProperty("useVirtuals")) return;
         for (const key in schema.statics.useVirtuals) {
             const value: object = schema.statics.useVirtuals[key].value;
             schema.virtual(key, value);
             // const fields: string[] = schema.statics.useVirtuals[key].fields || [];
             // schema.path(key, { ref: key, autopopulate: { select: fields, maxDepth: 3 }, type: Mongoose.Types.ObjectId });
-            schema.pre("aggregate", function (next: Function) {
+            schema.pre<Mongoose.Aggregate<TSource>>("aggregate", function (next: Function) {
                 const pipeLine: { from: string, localField: string, foreignField: string, as: string } = (({ from, localField, foreignField, as }) => ({ from, localField, foreignField, as }))(schema.statics.useVirtuals[key].value);
                 const unWind: boolean = schema.statics.useVirtuals[key].unWind || false;
                 // unWind ? this.lookup(pipeLine).unwind(key) : this.lookup(pipeLine);
@@ -87,8 +86,7 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
     async updateOrInsert(item: TSource): Promise<TSource> {
         try {
             item._id = !item._id || typeof item._id === "undefined" ? new Mongoose.Types.ObjectId() : item._id;
-            return await this.mongooseModel
-                .updateOne({ _id: item._id }, { $set: item }, { upsert: true, multi: true });
+            return await this.mongooseModel.updateOne({ _id: item._id }, { $set: item }, { upsert: true, multi: true });
         } catch (err) {
             console.log(err);
             throw new Error(JSON.stringify(err));
@@ -120,7 +118,7 @@ export default class BaseRepository<TSource extends Mongoose.Document> implement
     }
 
     async bulkInsert(items: Array<TSource> | TSource): Promise<Array<TSource>> {
-        if (!isArray(items)) items = [items];
+        if (!Array.isArray(items)) items = [items];
         return (await this.mongooseModel.insertMany(items)).map((docs: TSource): TSource => docs.toObject());
     }
 
